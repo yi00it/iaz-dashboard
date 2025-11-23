@@ -30,3 +30,14 @@ coverage/
 # Temporary files
 *.tmp
 .cache/
+
+# Windows Zone.Identifier files
+*:Zone.Identifier
+
+# Internal documentation (not for repo)
+PRE-PUBLICATION-CHECKLIST.md
+PUBLICATION-SUCCESS.md
+PUBLISHING.md
+READY-TO-PUBLISH.md
+STAGE-*.md
+*-SUMMARY.md

@@ -28,8 +28,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "prepublishOnly": "npm run typecheck && npm run test:run && npm run build"
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "dashboard",
