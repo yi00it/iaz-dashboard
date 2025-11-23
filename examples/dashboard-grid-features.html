@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grid Engine Demo - Saharos Dashboard Builder</title>
+    <link rel="stylesheet" href="../dist/iazd-dashboard.css" />
+    <link rel="stylesheet" href="shared-styles.css" />
+    <style>
+      /* Additional styles for log display */
+      .log {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        padding: var(--spacing-lg);
+        margin: var(--spacing-lg) auto;
+        max-width: 1400px;
+        border-radius: var(--radius-md);
+        font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+        font-size: 0.75rem;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .log-entry {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .log-entry:last-child {
+        border-bottom: none;
+      }
+
+      .log-entry .time {
+        color: var(--color-text-secondary);
+        margin-right: 0.5rem;
+      }
+
+      .log-entry .event {
+        color: var(--color-primary);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <h1>🎯 Grid Engine Demo</h1>
+        <p class="subtitle">Auto-positioning, collision resolution, and float mode compaction</p>
+        <span class="version-badge">v0.2.0</span>
+      </div>
+    </header>
+
+    <div class="controls">
+      <button id="addWidget">Add Widget</button>
+      <button id="addRandomWidget">Add Random Widget</button>
+      <button id="moveWidget" class="secondary">Move Widget 1 to (2,2)</button>
+      <button id="resizeWidget" class="secondary">Resize Widget 1 to 6x4</button>
+      <button id="removeWidget" class="danger">Remove Widget 1</button>
+      <button id="compact" class="secondary">Compact Layout</button>
+      <button id="clearAll" class="danger">Clear All</button>
+      <label>
+        <input type="checkbox" id="floatMode" />
+        Float Mode (Auto-compact)
+      </label>
+      <label>
+        <input type="checkbox" id="autoPosition" checked />
+        Auto-position
+      </label>
+    </div>
+
+    <div id="dashboard"></div>
+
+    <div class="log" id="log">
+      <div class="log-entry">
+        <span class="time">--:--:--</span>
+        <span class="event">READY</span>
+        Dashboard initialized
+      </div>
+    </div>
+
+    <script src="../dist/iazd-dashboard.umd.js"></script>
+    <script>
+      let widgetCounter = 0;
+
+      // Initialize dashboard
+      const { IAZDashboard: Dashboard } = IAZDashboard;
+      const dashboard = new Dashboard('#dashboard', {
+        columns: 12,
+        rowHeight: 50,
+        margin: 16,
+        draggable: false, // Not implemented yet (Milestone 3)
+        resizable: false, // Not implemented yet (Milestone 4)
+        floatMode: false,
+        autoPosition: true,
+        animate: true,
+        debug: true,
+      });
+
+      // Log function
+      function log(event, message, data = null) {
+        const logEl = document.getElementById('log');
+        const time = new Date().toLocaleTimeString();
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = `
+          <span class="time">${time}</span>
+          <span class="event">${event}</span>
+          ${message}
+          ${data ? `<pre>${JSON.stringify(data, null, 2)}</pre>` : ''}
+        `;
+        logEl.appendChild(entry);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      // Event listeners
+      dashboard.on('dashboard:ready', () => {
+        log('READY', 'Dashboard is ready');
+      });
+
+      dashboard.on('widget:add', (widget) => {
+        log('ADD', `Widget ${widget.id} added at (${widget.x}, ${widget.y})`);
+      });
+
+      dashboard.on('widget:remove', (widget) => {
+        log('REMOVE', `Widget ${widget.id} removed`);
+      });
+
+      dashboard.on('widget:move', (widget) => {
+        log('MOVE', `Widget ${widget.id} moved to (${widget.x}, ${widget.y})`);
+      });
+
+      dashboard.on('widget:resize', (widget) => {
+        log('RESIZE', `Widget ${widget.id} resized to ${widget.w}x${widget.h}`);
+      });
+
+      dashboard.on('layout:change', (state) => {
+        log('LAYOUT', `Layout changed - ${state.widgets.length} widgets`);
+      });
+
+      // Add initial widgets
+      dashboard.addWidget({
+        id: 'widget-1',
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 3,
+        content: `
+          <div class="widget-header">Widget 1</div>
+          <div class="widget-body">Initial widget at (0,0)</div>
+        `,
+      });
+
+      dashboard.addWidget({
+        id: 'widget-2',
+        w: 4,
+        h: 3,
+        content: `
+          <div class="widget-header">Widget 2</div>
+          <div class="widget-body">Auto-positioned</div>
+        `,
+      });
+
+      dashboard.addWidget({
+        id: 'widget-3',
+        w: 4,
+        h: 3,
+        content: `
+          <div class="widget-header">Widget 3</div>
+          <div class="widget-body">Auto-positioned</div>
+        `,
+      });
+
+      // Control buttons
+      document.getElementById('addWidget').addEventListener('click', () => {
+        widgetCounter++;
+        const id = `widget-${Date.now()}`;
+        dashboard.addWidget({
+          id,
+          w: 3,
+          h: 2,
+          content: `
+            <div class="widget-header">Widget ${widgetCounter}</div>
+            <div class="widget-body">Added dynamically</div>
+          `,
+        });
+      });
+
+      document.getElementById('addRandomWidget').addEventListener('click', () => {
+        widgetCounter++;
+        const id = `widget-${Date.now()}`;
+        const w = Math.floor(Math.random() * 4) + 2; // 2-5
+        const h = Math.floor(Math.random() * 3) + 2; // 2-4
+        dashboard.addWidget({
+          id,
+          w,
+          h,
+          content: `
+            <div class="widget-header">Random Widget ${widgetCounter}</div>
+            <div class="widget-body">Size: ${w}x${h}</div>
+          `,
+        });
+      });
+
+      document.getElementById('moveWidget').addEventListener('click', () => {
+        const success = dashboard.moveWidget('widget-1', 2, 2);
+        if (!success) {
+          log('ERROR', 'Failed to move widget-1 (not found or locked)');
+        }
+      });
+
+      document.getElementById('resizeWidget').addEventListener('click', () => {
+        const success = dashboard.resizeWidget('widget-1', 6, 4);
+        if (!success) {
+          log('ERROR', 'Failed to resize widget-1 (not found or locked)');
+        }
+      });
+
+      document.getElementById('removeWidget').addEventListener('click', () => {
+        const success = dashboard.removeWidget('widget-1');
+        if (!success) {
+          log('ERROR', 'Failed to remove widget-1 (not found)');
+        }
+      });
+
+      document.getElementById('compact').addEventListener('click', () => {
+        dashboard.compact();
+        dashboard.refresh();
+        log('COMPACT', 'Layout compacted');
+      });
+
+      document.getElementById('clearAll').addEventListener('click', () => {
+        const state = dashboard.getState();
+        state.widgets.forEach((w) => dashboard.removeWidget(w.id));
+        log('CLEAR', 'All widgets removed');
+      });
+
+      // Float mode toggle
+      document.getElementById('floatMode').addEventListener('change', (e) => {
+        dashboard.options.floatMode = e.target.checked;
+        log('CONFIG', `Float mode ${e.target.checked ? 'enabled' : 'disabled'}`);
+        if (e.target.checked) {
+          dashboard.compact();
+          dashboard.refresh();
+        }
+      });
+
+      // Auto-position toggle
+      document.getElementById('autoPosition').addEventListener('change', (e) => {
+        dashboard.options.autoPosition = e.target.checked;
+        log('CONFIG', `Auto-position ${e.target.checked ? 'enabled' : 'disabled'}`);
+      });
+
+      // Log current state
+      console.log('Dashboard State:', dashboard.getState());
+    </script>
+  </body>
+</html>

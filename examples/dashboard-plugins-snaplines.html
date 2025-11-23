@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saharos Dashboard Builder - Snaplines Plugin Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .demo-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 28px;
+      color: #2d3748;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #718096;
+      font-size: 16px;
+    }
+
+    .info {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .info h2 {
+      font-size: 18px;
+      color: #2d3748;
+      margin-bottom: 10px;
+    }
+
+    .info ul {
+      list-style-position: inside;
+      color: #4a5568;
+      line-height: 1.8;
+    }
+
+    #dashboard {
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      min-height: 600px;
+    }
+
+    .widget-content {
+      padding: 20px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .widget-content h3 {
+      font-size: 18px;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+
+    .widget-content p {
+      color: #718096;
+      font-size: 14px;
+    }
+
+    .widget-content .emoji {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <div class="header">
+      <h1>Snaplines Plugin Demo</h1>
+      <p>
+        This demo shows the Snaplines Plugin that displays visual alignment guides when dragging or resizing widgets.
+        <strong>Try dragging or resizing widgets to see green snaplines appear!</strong>
+      </p>
+    </div>
+
+    <div class="info">
+      <h2>How it works:</h2>
+      <ul>
+        <li>Green dashed lines appear when widget edges align</li>
+        <li>Lines show alignment with left, right, center, top, bottom, and middle of other widgets</li>
+        <li>10-pixel snap threshold for smooth alignment</li>
+        <li>Works during both drag and resize operations</li>
+      </ul>
+    </div>
+
+    <div id="dashboard"></div>
+  </div>
+
+  <script type="module">
+    import {
+      IAZDashboard,
+      snaplinesPlugin
+    } from '../dist/iazd-dashboard.esm.js';
+
+    // Create dashboard with snaplines plugin
+    const dashboard = new IAZDashboard('#dashboard', {
+      columns: 12,
+      rowHeight: 60,
+      margin: 10,
+      draggable: true,
+      resizable: true,
+      animate: true,
+      debug: true,
+    }).use(snaplinesPlugin);
+
+    // Helper to create widget content
+    function createWidgetContent(emoji, title, description) {
+      const div = document.createElement('div');
+      div.className = 'widget-content';
+      div.innerHTML = `
+        <div class="emoji">${emoji}</div>
+        <h3>${title}</h3>
+        <p>${description}</p>
+      `;
+      return div;
+    }
+
+    // Add widgets in a staggered pattern
+    dashboard.addWidget({
+      id: 'widget-1',
+      x: 0,
+      y: 0,
+      w: 3,
+      h: 3,
+      content: createWidgetContent('🎯', 'Widget 1', 'Drag me to align'),
+    });
+
+    dashboard.addWidget({
+      id: 'widget-2',
+      x: 4,
+      y: 0,
+      w: 4,
+      h: 2,
+      content: createWidgetContent('📍', 'Widget 2', 'Drag to align edges'),
+    });
+
+    dashboard.addWidget({
+      id: 'widget-3',
+      x: 9,
+      y: 0,
+      w: 3,
+      h: 3,
+      content: createWidgetContent('🧲', 'Widget 3', 'Resize to align'),
+    });
+
+    dashboard.addWidget({
+      id: 'widget-4',
+      x: 0,
+      y: 4,
+      w: 4,
+      h: 3,
+      content: createWidgetContent('✨', 'Widget 4', 'Try aligning centers'),
+    });
+
+    dashboard.addWidget({
+      id: 'widget-5',
+      x: 5,
+      y: 3,
+      w: 3,
+      h: 4,
+      content: createWidgetContent('🎨', 'Widget 5', 'Snap to any edge'),
+    });
+
+    dashboard.addWidget({
+      id: 'widget-6',
+      x: 9,
+      y: 4,
+      w: 3,
+      h: 3,
+      content: createWidgetContent('🔧', 'Widget 6', 'Watch the guides'),
+    });
+
+    // Listen to snapline events
+    dashboard.on('snapline:show', (data) => {
+      console.log('Snaplines shown:', data.alignments);
+    });
+
+    dashboard.on('snapline:hide', () => {
+      console.log('Snaplines hidden');
+    });
+
+    dashboard.on('plugin:snaplines:ready', (config) => {
+      console.log('Snaplines plugin ready:', config);
+    });
+  </script>
+</body>
+</html>

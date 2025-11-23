@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UMD Test</title>
+    <link rel="stylesheet" href="../dist/iazd-dashboard.css">
+</head>
+<body>
+    <div id="dashboard" style="width: 100%; height: 600px;"></div>
+
+    <script src="../dist/iazd-dashboard.umd.js"></script>
+    <script>
+        console.log('IAZDashboard global:', typeof IAZDashboard);
+        console.log('IAZDashboard keys:', Object.keys(IAZDashboard));
+        console.log('IAZDashboard.IAZDashboard:', typeof IAZDashboard.IAZDashboard);
+
+        // Try to create instance
+        const Dashboard = IAZDashboard.IAZDashboard;
+        const dashboard = new Dashboard('#dashboard', {
+            columns: 12,
+            rowHeight: 60,
+            margin: 16,
+            debug: true
+        });
+
+        dashboard.addWidget({
+            id: 'test-1',
+            x: 0,
+            y: 0,
+            w: 4,
+            h: 3,
+            content: '<h2>Test Widget</h2><p>UMD is working!</p>'
+        });
+
+        console.log('Dashboard state:', dashboard.getState());
+    </script>
+</body>
+</html>

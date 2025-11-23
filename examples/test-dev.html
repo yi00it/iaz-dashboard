@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dev Test - Saharos Dashboard Builder</title>
+  </head>
+  <body>
+    <div id="dashboard" style="width: 100%; height: 600px;"></div>
+
+    <script type="module">
+      import { IAZDashboard } from '../src/index.ts';
+
+      const dashboard = new IAZDashboard('#dashboard', {
+        columns: 12,
+        rowHeight: 60,
+        margin: 16,
+        draggable: true,
+        resizable: true,
+        debug: true,
+      });
+
+      // Add test widget
+      dashboard.addWidget({
+        id: 'test-1',
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 3,
+        content: '<h2>Test Widget</h2><p>If you see this, it works!</p>',
+      });
+
+      console.log('Dashboard initialized:', dashboard.getState());
+    </script>
+  </body>
+</html>

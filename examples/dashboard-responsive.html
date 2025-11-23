@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Responsive Breakpoints Demo - Saharos Dashboard Builder</title>
+    <link rel="stylesheet" href="../dist/iazd-dashboard.css" />
+    <link rel="stylesheet" href="shared-styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <h1>📱 Responsive Breakpoints Demo</h1>
+        <p class="subtitle">Mobile-first responsive design with automatic layout switching</p>
+        <span class="version-badge">v0.5.0</span>
+      </div>
+    </header>
+
+    <div class="info-banner">
+      <h3>📏 How Breakpoints Work</h3>
+      <p>
+        🔍 <strong>Resize your browser window</strong> to see the layout automatically adapt to different
+        screen sizes
+      </p>
+      <p>
+        📱 <strong>Mobile (&lt; 640px):</strong> <code>1 column</code> - Stacked vertical layout
+      </p>
+      <p>
+        📱 <strong>Tablet (640-1024px):</strong> <code>6 columns</code> - Medium grid layout
+      </p>
+      <p>
+        💻 <strong>Desktop (&ge; 1024px):</strong> <code>12 columns</code> - Full grid layout
+      </p>
+      <p>
+        💾 <strong>Layout persistence:</strong> Each breakpoint remembers its own layout when you drag/resize
+        widgets
+      </p>
+    </div>
+
+    <div class="breakpoint-indicator">
+      <div class="breakpoint-name" id="breakpointName">Desktop</div>
+      <div class="breakpoint-details" id="breakpointDetails">12 columns • ≥ 1024px</div>
+    </div>
+
+    <div class="controls">
+      <button id="addWidget">➕ Add Widget</button>
+      <button id="resetLayouts">🔄 Reset All Layouts</button>
+      <button id="logState">🔍 Log State</button>
+    </div>
+
+    <div id="dashboard"></div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value" id="widgetCount">0</div>
+        <div class="stat-label">Total Widgets</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="breakpointChangeCount">0</div>
+        <div class="stat-label">Breakpoint Changes</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="currentColumns">12</div>
+        <div class="stat-label">Current Columns</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="viewportWidth">0</div>
+        <div class="stat-label">Viewport Width (px)</div>
+      </div>
+    </div>
+
+    <script src="../dist/iazd-dashboard.umd.js"></script>
+    <script>
+      let widgetCounter = 0;
+      let breakpointChangeCount = 0;
+
+      const icons = ['📊', '📈', '📉', '💰', '👥', '⚙️', '📧', '🔔', '📱', '💻', '🌐', '🎯'];
+
+      // Initialize dashboard with breakpoints
+      const { IAZDashboard: Dashboard } = IAZDashboard;
+      const dashboard = new Dashboard('#dashboard', {
+        columns: 12,
+        rowHeight: 60,
+        margin: 16,
+        draggable: true,
+        resizable: true,
+        floatMode: false,
+        autoPosition: true,
+        animate: true,
+        debug: true,
+        breakpoints: {
+          mobile: {
+            width: 0,
+            columns: 1,
+            rowHeight: 80,
+          },
+          tablet: {
+            width: 640,
+            columns: 6,
+            rowHeight: 70,
+          },
+          desktop: {
+            width: 1024,
+            columns: 12,
+            rowHeight: 60,
+          },
+        },
+      });
+
+      // Update stats
+      function updateStats() {
+        const state = dashboard.getState();
+        document.getElementById('widgetCount').textContent = state.widgets.length;
+        document.getElementById('breakpointChangeCount').textContent = breakpointChangeCount;
+        document.getElementById('currentColumns').textContent = state.columns;
+        document.getElementById('viewportWidth').textContent = window.innerWidth;
+      }
+
+      function updateBreakpointIndicator(name, config) {
+        const nameEl = document.getElementById('breakpointName');
+        const detailsEl = document.getElementById('breakpointDetails');
+
+        const emoji = name === 'mobile' ? '📱' : name === 'tablet' ? '📱' : '💻';
+        nameEl.textContent = `${emoji} ${name.charAt(0).toUpperCase() + name.slice(1)}`;
+
+        const widthDesc =
+          name === 'mobile'
+            ? '&lt; 640px'
+            : name === 'tablet'
+            ? '640-1024px'
+            : '&ge; 1024px';
+
+        detailsEl.textContent = `${config.columns} columns • ${widthDesc}`;
+      }
+
+      // Event listeners
+      dashboard.on('dashboard:ready', () => {
+        console.log('✅ Dashboard is ready');
+        updateStats();
+      });
+
+      dashboard.on('widget:add', (widget) => {
+        console.log('➕ Widget added:', widget.id);
+        updateStats();
+      });
+
+      dashboard.on('breakpoint:change', (data) => {
+        console.log('📏 Breakpoint changed:', data);
+        breakpointChangeCount++;
+        updateBreakpointIndicator(data.name, data.config);
+        updateStats();
+      });
+
+      dashboard.on('layout:change', () => {
+        updateStats();
+      });
+
+      // Update viewport width on resize
+      window.addEventListener('resize', () => {
+        updateStats();
+      });
+
+      // Add initial widgets
+      const initialWidgets = [
+        {
+          icon: '📊',
+          title: 'Sales Dashboard',
+          desc: 'Real-time sales metrics',
+          w: 4,
+          h: 3,
+          x: 0,
+          y: 0,
+        },
+        {
+          icon: '📈',
+          title: 'Growth Trends',
+          desc: 'Monthly growth analysis',
+          w: 4,
+          h: 3,
+          x: 4,
+          y: 0,
+        },
+        {
+          icon: '💰',
+          title: 'Revenue',
+          desc: 'Total revenue this month',
+          w: 4,
+          h: 3,
+          x: 8,
+          y: 0,
+        },
+        {
+          icon: '👥',
+          title: 'Active Users',
+          desc: '1,234 users online now',
+          w: 3,
+          h: 2,
+          x: 0,
+          y: 3,
+        },
+        {
+          icon: '⚙️',
+          title: 'Settings',
+          desc: 'System configuration',
+          w: 3,
+          h: 2,
+          x: 3,
+          y: 3,
+        },
+        {
+          icon: '📧',
+          title: 'Messages',
+          desc: '12 unread messages',
+          w: 3,
+          h: 2,
+          x: 6,
+          y: 3,
+        },
+        {
+          icon: '🔔',
+          title: 'Notifications',
+          desc: '5 new notifications',
+          w: 3,
+          h: 2,
+          x: 9,
+          y: 3,
+        },
+      ];
+
+      initialWidgets.forEach((w, i) => {
+        dashboard.addWidget({
+          id: `widget-${i + 1}`,
+          x: w.x,
+          y: w.y,
+          w: w.w,
+          h: w.h,
+          content: `
+            <div style="text-align: center;">
+              <div class="widget-icon">${w.icon}</div>
+              <div class="widget-header">${w.title}</div>
+              <div class="widget-body">${w.desc}</div>
+            </div>
+          `,
+        });
+      });
+
+      widgetCounter = initialWidgets.length;
+      updateStats();
+
+      // Control buttons
+      document.getElementById('addWidget').addEventListener('click', () => {
+        widgetCounter++;
+        const icon = icons[Math.floor(Math.random() * icons.length)];
+        dashboard.addWidget({
+          id: `widget-${widgetCounter}`,
+          w: 3,
+          h: 2,
+          content: `
+            <div style="text-align: center;">
+              <div class="widget-icon">${icon}</div>
+              <div class="widget-header">Widget ${widgetCounter}</div>
+              <div class="widget-body">Drag me around!</div>
+            </div>
+          `,
+        });
+      });
+
+      document.getElementById('resetLayouts').addEventListener('click', () => {
+        if (confirm('Reset all breakpoint layouts? This will clear all saved layouts.')) {
+          // Clear saved layouts by reloading the page
+          window.location.reload();
+        }
+      });
+
+      document.getElementById('logState').addEventListener('click', () => {
+        const state = dashboard.getState();
+        console.log('📋 Current state:', state);
+        alert('State logged to console. Open DevTools to see details.');
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Basic Static Demo - Saharos Dashboard Builder</title>
+    <link rel="stylesheet" href="../dist/iazd-dashboard.css" />
+    <link rel="stylesheet" href="shared-styles.css" />
+    <style>
+      /* Additional custom widget styles */
+      .metric {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin: 1rem 0;
+      }
+
+      .chart-placeholder {
+        width: 100%;
+        height: 120px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <h1>✨ Basic Static Demo</h1>
+        <p class="subtitle">Simple static dashboard with pre-positioned widgets</p>
+        <span class="version-badge">v0.1.0</span>
+      </div>
+    </header>
+
+    <div id="dashboard"></div>
+
+    <script src="../dist/iazd-dashboard.umd.js"></script>
+    <script>
+      // Initialize dashboard
+      const { IAZDashboard: Dashboard } = IAZDashboard;
+      const dashboard = new Dashboard('#dashboard', {
+        columns: 12,
+        rowHeight: 50,
+        margin: 16,
+        draggable: false, // Not implemented yet
+        resizable: false, // Not implemented yet
+        debug: true,
+      });
+
+      // Add some static widgets
+      dashboard.addWidget({
+        id: 'widget-1',
+        x: 0,
+        y: 0,
+        w: 3,
+        h: 3,
+        content: `
+          <div class="widget-header">Total Users</div>
+          <div class="metric">12,453</div>
+          <div class="widget-body">↑ 12% from last month</div>
+        `,
+      });
+
+      dashboard.addWidget({
+        id: 'widget-2',
+        x: 3,
+        y: 0,
+        w: 3,
+        h: 3,
+        content: `
+          <div class="widget-header">Revenue</div>
+          <div class="metric">$45.2K</div>
+          <div class="widget-body">↑ 8% from last month</div>
+        `,
+      });
+
+      dashboard.addWidget({
+        id: 'widget-3',
+        x: 6,
+        y: 0,
+        w: 3,
+        h: 3,
+        content: `
+          <div class="widget-header">Active Sessions</div>
+          <div class="metric">892</div>
+          <div class="widget-body">↓ 3% from yesterday</div>
+        `,
+      });
+
+      dashboard.addWidget({
+        id: 'widget-4',
+        x: 9,
+        y: 0,
+        w: 3,
+        h: 3,
+        content: `
+          <div class="widget-header">Conversion Rate</div>
+          <div class="metric">3.24%</div>
+          <div class="widget-body">↑ 0.5% from last week</div>
+        `,
+      });
+
+      dashboard.addWidget({
+        id: 'widget-5',
+        x: 0,
+        y: 3,
+        w: 6,
+        h: 4,
+        content: `
+          <div class="widget-header">Traffic Overview</div>
+          <div class="chart-placeholder">Chart Placeholder</div>
+          <div class="widget-body" style="margin-top: 1rem;">
+            Weekly traffic analysis showing peak hours
+          </div>
+        `,
+      });
+
+      dashboard.addWidget({
+        id: 'widget-6',
+        x: 6,
+        y: 3,
+        w: 6,
+        h: 4,
+        content: `
+          <div class="widget-header">Sales by Region</div>
+          <div class="chart-placeholder">Chart Placeholder</div>
+          <div class="widget-body" style="margin-top: 1rem;">
+            Geographic distribution of sales
+          </div>
+        `,
+      });
+
+      dashboard.addWidget({
+        id: 'widget-7',
+        x: 0,
+        y: 7,
+        w: 4,
+        h: 3,
+        content: `
+          <div class="widget-header">Recent Activity</div>
+          <div class="widget-body">
+            • New user registration<br />
+            • Payment received<br />
+            • Support ticket closed<br />
+            • System update completed
+          </div>
+        `,
+      });
+
+      dashboard.addWidget({
+        id: 'widget-8',
+        x: 4,
+        y: 7,
+        w: 4,
+        h: 3,
+        content: `
+          <div class="widget-header">Top Products</div>
+          <div class="widget-body">
+            1. Premium Plan - 345 sales<br />
+            2. Starter Pack - 289 sales<br />
+            3. Enterprise Suite - 156 sales<br />
+            4. Add-on Bundle - 98 sales
+          </div>
+        `,
+      });
+
+      dashboard.addWidget({
+        id: 'widget-9',
+        x: 8,
+        y: 7,
+        w: 4,
+        h: 3,
+        content: `
+          <div class="widget-header">System Status</div>
+          <div class="widget-body">
+            <div style="margin: 0.5rem 0;">🟢 API Server: Healthy</div>
+            <div style="margin: 0.5rem 0;">🟢 Database: Healthy</div>
+            <div style="margin: 0.5rem 0;">🟢 CDN: Healthy</div>
+            <div style="margin: 0.5rem 0;">🟡 Email Queue: 23 pending</div>
+          </div>
+        `,
+      });
+
+      // Log current state
+      console.log('Dashboard State:', dashboard.getState());
+    </script>
+  </body>
+</html>

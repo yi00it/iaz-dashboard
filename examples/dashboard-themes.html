@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Theming Demo - Saharos Dashboard Builder</title>
+    <link rel="stylesheet" href="../dist/iazd-dashboard.css" />
+    <link rel="stylesheet" href="shared-styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <h1>🎨 Theming Demo</h1>
+        <p class="subtitle">Switch between 6 built-in themes powered by CSS variables</p>
+        <span class="version-badge">v0.6.0</span>
+      </div>
+    </header>
+
+    <div class="theme-selector">
+      <h2>Choose a Theme</h2>
+      <div class="theme-buttons">
+        <button class="theme-btn active" data-theme="">
+          <span class="theme-preview light"></span>
+          Default
+        </button>
+        <button class="theme-btn" data-theme="iazd-theme-dark">
+          <span class="theme-preview dark"></span>
+          Dark
+        </button>
+        <button class="theme-btn" data-theme="iazd-theme-minimal">
+          <span class="theme-preview minimal"></span>
+          Minimal
+        </button>
+        <button class="theme-btn" data-theme="iazd-theme-colorful">
+          <span class="theme-preview colorful"></span>
+          Colorful
+        </button>
+        <button class="theme-btn" data-theme="iazd-theme-glass">
+          <span class="theme-preview glass"></span>
+          Glass
+        </button>
+        <button class="theme-btn" data-theme="iazd-theme-neon">
+          <span class="theme-preview neon"></span>
+          Neon
+        </button>
+      </div>
+    </div>
+
+    <div id="dashboard"></div>
+
+    <script src="../dist/iazd-dashboard.umd.js"></script>
+    <script>
+      const { IAZDashboard: Dashboard } = IAZDashboard;
+
+      const dashboard = new Dashboard('#dashboard', {
+        columns: 12,
+        rowHeight: 60,
+        margin: 16,
+        draggable: true,
+        resizable: true,
+        animate: true,
+      });
+
+      const widgets = [
+        { icon: '📊', title: 'Analytics', desc: 'View metrics', w: 4, h: 3, x: 0, y: 0 },
+        { icon: '📈', title: 'Growth', desc: 'Track trends', w: 4, h: 3, x: 4, y: 0 },
+        { icon: '💰', title: 'Revenue', desc: 'Monitor streams', w: 4, h: 3, x: 8, y: 0 },
+        { icon: '👥', title: 'Users', desc: '1,234 active', w: 3, h: 2, x: 0, y: 3 },
+        { icon: '⚙️', title: 'Settings', desc: 'Configure', w: 3, h: 2, x: 3, y: 3 },
+        { icon: '📧', title: 'Messages', desc: '12 unread', w: 3, h: 2, x: 6, y: 3 },
+        { icon: '🔔', title: 'Alerts', desc: '5 new', w: 3, h: 2, x: 9, y: 3 },
+      ];
+
+      widgets.forEach((w, i) => {
+        dashboard.addWidget({
+          id: `widget-${i + 1}`,
+          x: w.x,
+          y: w.y,
+          w: w.w,
+          h: w.h,
+          content: `
+            <div style="text-align: center;">
+              <div class="widget-icon">${w.icon}</div>
+              <div class="widget-header">${w.title}</div>
+              <div class="widget-body">${w.desc}</div>
+            </div>
+          `,
+        });
+      });
+
+      const container = document.querySelector('.iazd-container');
+      const themeButtons = document.querySelectorAll('.theme-btn');
+
+      themeButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const theme = btn.dataset.theme;
+          container.className = 'iazd-container';
+          if (theme) container.classList.add(theme);
+          themeButtons.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+    </script>
+  </body>
+</html>

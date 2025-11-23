@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saharos Dashboard Builder</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --color-bg: #fafbfc;
+        --color-surface: #ffffff;
+        --color-border: #e1e4e8;
+        --color-text: #24292e;
+        --color-text-secondary: #586069;
+        --color-primary: #0366d6;
+        --radius: 8px;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+          Arial, sans-serif;
+        background: var(--color-bg);
+        color: var(--color-text);
+        line-height: 1.6;
+        padding: 2rem 1rem;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+        color: var(--color-text-secondary);
+        margin-bottom: 1rem;
+      }
+
+      .version {
+        display: inline-block;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--color-text-secondary);
+      }
+
+      .demos {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .demo-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: all 0.15s ease;
+      }
+
+      .demo-card:hover {
+        border-color: var(--color-primary);
+        box-shadow: var(--shadow);
+      }
+
+      .demo-card h2 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--color-text);
+      }
+
+      .demo-card p {
+        font-size: 0.875rem;
+        color: var(--color-text-secondary);
+        line-height: 1.5;
+        margin-bottom: 0.75rem;
+      }
+
+      .features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .badge {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        padding: 0.125rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        color: var(--color-text-secondary);
+        font-weight: 500;
+      }
+
+      .badge.new {
+        background: #e6f3ff;
+        color: var(--color-primary);
+        border-color: var(--color-primary);
+      }
+
+      .badge.hot {
+        background: #fff5f5;
+        color: #d73a49;
+        border-color: #d73a49;
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--color-border);
+        color: var(--color-text-secondary);
+        font-size: 0.813rem;
+      }
+
+      footer a {
+        color: var(--color-primary);
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 1.5rem 1rem;
+        }
+
+        h1 {
+          font-size: 1.5rem;
+        }
+
+        .demo-card {
+          padding: 1.25rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Saharos Dashboard Builder</h1>
+        <p class="subtitle">Zero-dependency dashboard grid & layout builder</p>
+        <span class="version">v0.6.0</span>
+      </header>
+
+      <div class="demos">
+        <a href="/examples/dashboard-themes.html" class="demo-card">
+          <h2>🎨 Theming</h2>
+          <p>
+            6 built-in themes with CSS custom properties. Switch between Default, Dark, Minimal,
+            Colorful, Glass, and Neon themes instantly.
+          </p>
+          <div class="features">
+            <span class="badge hot">Recommended</span>
+            <span class="badge new">v0.6.0</span>
+            <span class="badge">Themes</span>
+            <span class="badge">CSS Variables</span>
+          </div>
+        </a>
+
+        <a href="/examples/dashboard-custom-rendering.html" class="demo-card">
+          <h2>🎨 Custom Rendering</h2>
+          <p>
+            Custom rendering hooks for complete control over widget appearance. Create gradient
+            backgrounds, custom headers, badges, and stat cards.
+          </p>
+          <div class="features">
+            <span class="badge new">v0.6.0</span>
+            <span class="badge">Render Hooks</span>
+            <span class="badge">Flexibility</span>
+          </div>
+        </a>
+
+        <a href="/examples/dashboard-responsive.html" class="demo-card">
+          <h2>📱 Responsive Breakpoints</h2>
+          <p>
+            Mobile-first responsive design with automatic layout switching. Resize to see layouts
+            adapt from 1 column → 6 columns → 12 columns.
+          </p>
+          <div class="features">
+            <span class="badge new">v0.5.0</span>
+            <span class="badge">Mobile-first</span>
+            <span class="badge">Auto-adapt</span>
+          </div>
+        </a>
+
+        <a href="/examples/dashboard-full-demo.html" class="demo-card">
+          <h2>🚀 Full Interactive Demo</h2>
+          <p>
+            Complete demonstration with drag & drop, resize handles, collision detection,
+            auto-positioning, and live statistics.
+          </p>
+          <div class="features">
+            <span class="badge new">v0.4.0</span>
+            <span class="badge">Drag & Drop</span>
+            <span class="badge">Resize</span>
+          </div>
+        </a>
+
+        <a href="/examples/dashboard-drag-drop.html" class="demo-card">
+          <h2>📦 Drag & Drop</h2>
+          <p>
+            Drag & drop functionality with ghost preview, grid snapping, and collision feedback.
+            Shows the drag engine in isolation.
+          </p>
+          <div class="features">
+            <span class="badge new">v0.3.0</span>
+            <span class="badge">Ghost Preview</span>
+          </div>
+        </a>
+
+        <a href="/examples/dashboard-grid-features.html" class="demo-card">
+          <h2>🎯 Grid Engine</h2>
+          <p>
+            Grid-based layout, collision resolution, auto-positioning, and float mode compaction.
+            Programmatic widget manipulation.
+          </p>
+          <div class="features">
+            <span class="badge new">v0.2.0</span>
+            <span class="badge">Grid Layout</span>
+          </div>
+        </a>
+
+        <a href="/examples/dashboard-basic.html" class="demo-card">
+          <h2>✨ Basic Static</h2>
+          <p>
+            Simple static dashboard with pre-positioned widgets. Shows basic rendering without
+            interaction.
+          </p>
+          <div class="features">
+            <span class="badge">v0.1.0</span>
+            <span class="badge">Static</span>
+          </div>
+        </a>
+      </div>
+
+      <footer>
+        <p>
+          Zero dependencies • MIT License • Built with TypeScript<br />
+          <a href="https://github.com/anthropics/saharos-dashboard-builder" target="_blank"
+            >View on GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

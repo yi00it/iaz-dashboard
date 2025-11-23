@@ -1,0 +1,194 @@
+/**
+ * Saharos Dashboard Builder - Theme Presets
+ * Apply theme classes to the .iazd-container element
+ */
+
+/* ========================================
+   ENHANCED THEME VARIABLES
+   ======================================== */
+
+:root {
+  /* Grid */
+  --iazd-grid-bg: #f5f5f5;
+  --iazd-grid-padding: 8px;
+
+  /* Widget */
+  --iazd-widget-bg: #ffffff;
+  --iazd-widget-border: #e0e0e0;
+  --iazd-widget-border-width: 1px;
+  --iazd-widget-shadow: rgba(0, 0, 0, 0.1);
+  --iazd-widget-shadow-hover: rgba(0, 0, 0, 0.15);
+  --iazd-widget-text: #333333;
+
+  /* Radius & Spacing */
+  --iazd-radius: 8px;
+  --iazd-gap: 8px;
+  --iazd-widget-padding: 16px;
+
+  /* Resize Handles */
+  --iazd-handle-size: 12px;
+  --iazd-handle-color: #4a90e2;
+  --iazd-handle-border: #ffffff;
+
+  /* Drag & Drop */
+  --iazd-drag-border: #4a90e2;
+  --iazd-drag-bg: rgba(74, 144, 226, 0.15);
+  --iazd-drag-opacity: 0.3;
+
+  /* Collision */
+  --iazd-collision-border: #e74c3c;
+  --iazd-collision-bg: rgba(231, 76, 60, 0.15);
+
+  /* Transitions */
+  --iazd-transition: 200ms ease;
+}
+
+/* ========================================
+   DARK THEME
+   ======================================== */
+
+.iazd-container.iazd-theme-dark {
+  --iazd-grid-bg: #1a1a1a;
+  --iazd-widget-bg: #2d2d2d;
+  --iazd-widget-border: #404040;
+  --iazd-widget-shadow: rgba(0, 0, 0, 0.5);
+  --iazd-widget-shadow-hover: rgba(0, 0, 0, 0.7);
+  --iazd-widget-text: #e0e0e0;
+
+  --iazd-handle-color: #5ba3ff;
+  --iazd-handle-border: #404040;
+
+  --iazd-drag-border: #5ba3ff;
+  --iazd-drag-bg: rgba(91, 163, 255, 0.2);
+
+  --iazd-collision-border: #ff6b6b;
+  --iazd-collision-bg: rgba(255, 107, 107, 0.2);
+}
+
+.iazd-container.iazd-theme-dark .iazd-widget-content {
+  color: var(--iazd-widget-text);
+}
+
+/* ========================================
+   MINIMAL THEME
+   ======================================== */
+
+.iazd-container.iazd-theme-minimal {
+  --iazd-grid-bg: #ffffff;
+  --iazd-widget-bg: #ffffff;
+  --iazd-widget-border: #e8e8e8;
+  --iazd-widget-border-width: 1px;
+  --iazd-widget-shadow: rgba(0, 0, 0, 0.05);
+  --iazd-widget-shadow-hover: rgba(0, 0, 0, 0.08);
+  --iazd-widget-text: #333333;
+
+  --iazd-radius: 4px;
+  --iazd-gap: 12px;
+  --iazd-widget-padding: 20px;
+
+  --iazd-handle-size: 10px;
+  --iazd-handle-color: #666666;
+  --iazd-handle-border: #ffffff;
+
+  --iazd-drag-border: #999999;
+  --iazd-drag-bg: rgba(0, 0, 0, 0.05);
+
+  --iazd-collision-border: #cc0000;
+  --iazd-collision-bg: rgba(204, 0, 0, 0.05);
+}
+
+/* ========================================
+   COLORFUL THEME
+   ======================================== */
+
+.iazd-container.iazd-theme-colorful {
+  --iazd-grid-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --iazd-widget-bg: #ffffff;
+  --iazd-widget-border: rgba(255, 255, 255, 0.3);
+  --iazd-widget-border-width: 2px;
+  --iazd-widget-shadow: rgba(102, 126, 234, 0.3);
+  --iazd-widget-shadow-hover: rgba(102, 126, 234, 0.5);
+  --iazd-widget-text: #333333;
+
+  --iazd-radius: 12px;
+  --iazd-widget-padding: 20px;
+
+  --iazd-handle-color: #667eea;
+  --iazd-handle-border: #ffffff;
+
+  --iazd-drag-border: #667eea;
+  --iazd-drag-bg: rgba(102, 126, 234, 0.2);
+
+  --iazd-collision-border: #ff6b6b;
+  --iazd-collision-bg: rgba(255, 107, 107, 0.2);
+}
+
+/* ========================================
+   GLASS THEME (Glassmorphism)
+   ======================================== */
+
+.iazd-container.iazd-theme-glass {
+  --iazd-grid-bg: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+  --iazd-widget-bg: rgba(255, 255, 255, 0.25);
+  --iazd-widget-border: rgba(255, 255, 255, 0.5);
+  --iazd-widget-border-width: 1px;
+  --iazd-widget-shadow: rgba(0, 0, 0, 0.1);
+  --iazd-widget-shadow-hover: rgba(0, 0, 0, 0.2);
+  --iazd-widget-text: #333333;
+
+  --iazd-radius: 16px;
+  --iazd-widget-padding: 24px;
+
+  --iazd-handle-color: rgba(255, 255, 255, 0.8);
+  --iazd-handle-border: rgba(255, 255, 255, 0.3);
+
+  --iazd-drag-border: rgba(255, 255, 255, 0.6);
+  --iazd-drag-bg: rgba(255, 255, 255, 0.3);
+}
+
+.iazd-container.iazd-theme-glass .iazd-widget {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* ========================================
+   NEON THEME
+   ======================================== */
+
+.iazd-container.iazd-theme-neon {
+  --iazd-grid-bg: #0a0a0a;
+  --iazd-widget-bg: #1a1a1a;
+  --iazd-widget-border: #00ffff;
+  --iazd-widget-border-width: 2px;
+  --iazd-widget-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  --iazd-widget-shadow-hover: 0 0 30px rgba(0, 255, 255, 0.7);
+  --iazd-widget-text: #00ffff;
+
+  --iazd-radius: 0px;
+  --iazd-widget-padding: 16px;
+
+  --iazd-handle-color: #ff00ff;
+  --iazd-handle-border: #0a0a0a;
+
+  --iazd-drag-border: #00ff00;
+  --iazd-drag-bg: rgba(0, 255, 0, 0.1);
+
+  --iazd-collision-border: #ff0000;
+  --iazd-collision-bg: rgba(255, 0, 0, 0.1);
+}
+
+.iazd-container.iazd-theme-neon .iazd-widget {
+  box-shadow: 0 0 20px var(--iazd-widget-shadow);
+}
+
+.iazd-container.iazd-theme-neon .iazd-widget:hover {
+  box-shadow: 0 0 30px var(--iazd-widget-shadow-hover);
+}
+
+.iazd-container.iazd-theme-neon .iazd-widget-content {
+  color: var(--iazd-widget-text);
+}
+
+.iazd-container.iazd-theme-neon .iazd-resize-handle {
+  box-shadow: 0 0 10px var(--iazd-handle-color);
+}

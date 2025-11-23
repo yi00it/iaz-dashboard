@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Full Interactive Demo - Saharos Dashboard Builder</title>
+    <link rel="stylesheet" href="../dist/iazd-dashboard.css" />
+    <link rel="stylesheet" href="shared-styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <h1>🚀 Full Interactive Demo</h1>
+        <p class="subtitle">Complete demonstration with drag & drop, resize, and live statistics</p>
+        <span class="version-badge">v0.4.0</span>
+      </div>
+    </header>
+
+    <div class="info-banner">
+      <h3>✨ How to Use</h3>
+      <p>📦 <strong>Drag widgets</strong> by clicking and holding anywhere on a widget</p>
+      <p>🔄 <strong>Resize widgets</strong> by hovering and dragging the blue handles (corner or edges)</p>
+      <p>🎯 <strong>Visual feedback</strong> shows where the widget will land (blue = valid, red = collision)</p>
+      <p>⌨️ <strong>Press ESC</strong> to cancel a drag or resize</p>
+      <p>🔒 <strong>Locked widgets</strong> cannot be moved or resized (try the "Lock Widget 1" button)</p>
+    </div>
+
+    <div class="controls">
+      <button id="addWidget">➕ Add Widget</button>
+      <button id="addLargeWidget">➕ Add Large Widget</button>
+      <button id="lockWidget">🔒 Lock Widget 1</button>
+      <button id="unlockWidget">🔓 Unlock Widget 1</button>
+      <button id="clearAll" class="danger">🗑️ Clear All</button>
+      <label>
+        <input type="checkbox" id="floatMode" />
+        🌊 Float Mode (Auto-compact)
+      </label>
+      <label>
+        <input type="checkbox" id="animate" checked />
+        ✨ Smooth Animations
+      </label>
+    </div>
+
+    <div id="dashboard"></div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value" id="widgetCount">0</div>
+        <div class="stat-label">Total Widgets</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="dragCount">0</div>
+        <div class="stat-label">Drag Operations</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="resizeCount">0</div>
+        <div class="stat-label">Resize Operations</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="collisionCount">0</div>
+        <div class="stat-label">Collision Resolutions</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="layoutChangeCount">0</div>
+        <div class="stat-label">Layout Changes</div>
+      </div>
+    </div>
+
+    <script src="../dist/iazd-dashboard.umd.js"></script>
+    <script>
+      let widgetCounter = 0;
+      let dragCount = 0;
+      let resizeCount = 0;
+      let collisionCount = 0;
+      let layoutChangeCount = 0;
+
+      const icons = ['📊', '📈', '📉', '💰', '👥', '⚙️', '📧', '🔔', '📱', '💻', '🌐', '🎯'];
+
+      // Initialize dashboard
+      const { IAZDashboard: Dashboard } = IAZDashboard;
+      const dashboard = new Dashboard('#dashboard', {
+        columns: 12,
+        rowHeight: 60,
+        margin: 16,
+        draggable: true,  // ✅ DRAG ENABLED (v0.3.0)
+        resizable: true,  // ✅ RESIZE ENABLED (v0.4.0)
+        floatMode: false,
+        autoPosition: true,
+        animate: true,
+        debug: true,
+      });
+
+      // Update stats
+      function updateStats() {
+        document.getElementById('widgetCount').textContent = dashboard.getState().widgets.length;
+        document.getElementById('dragCount').textContent = dragCount;
+        document.getElementById('resizeCount').textContent = resizeCount;
+        document.getElementById('collisionCount').textContent = collisionCount;
+        document.getElementById('layoutChangeCount').textContent = layoutChangeCount;
+      }
+
+      // Event listeners
+      dashboard.on('dashboard:ready', () => {
+        console.log('✅ Dashboard is ready');
+        updateStats();
+      });
+
+      dashboard.on('widget:add', (widget) => {
+        console.log('➕ Widget added:', widget.id);
+        updateStats();
+      });
+
+      dashboard.on('widget:remove', (widget) => {
+        console.log('🗑️ Widget removed:', widget.id);
+        updateStats();
+      });
+
+      dashboard.on('drag:start', (widget, data) => {
+        console.log('🎯 Drag started:', widget.id, data);
+      });
+
+      dashboard.on('drag:move', (widget, data) => {
+        // Too noisy - only log every 10th move
+        if (Math.random() < 0.1) {
+          console.log('↔️ Dragging:', widget.id, `(${data.x}, ${data.y})`);
+        }
+      });
+
+      dashboard.on('drag:end', (widget, data) => {
+        console.log('✅ Drag ended:', widget.id, data);
+        if (data.moved) {
+          dragCount++;
+          updateStats();
+        }
+      });
+
+      dashboard.on('drag:cancel', (widget) => {
+        console.log('❌ Drag cancelled:', widget.id);
+      });
+
+      // Resize events
+      dashboard.on('resize:start', (widget, data) => {
+        console.log('🔄 Resize started:', widget.id, data);
+      });
+
+      dashboard.on('resize:move', (widget, data) => {
+        // Too noisy - only log occasionally
+        if (Math.random() < 0.05) {
+          console.log('↔️ Resizing:', widget.id, `${data.w}x${data.h}`);
+        }
+      });
+
+      dashboard.on('resize:end', (widget, data) => {
+        console.log('✅ Resize ended:', widget.id, data);
+        if (data.resized) {
+          resizeCount++;
+          updateStats();
+        }
+      });
+
+      dashboard.on('resize:cancel', (widget) => {
+        console.log('❌ Resize cancelled:', widget.id);
+      });
+
+      dashboard.on('widget:move', (widget) => {
+        console.log('📦 Widget moved:', widget.id, `(${widget.x}, ${widget.y})`);
+      });
+
+      dashboard.on('layout:change', () => {
+        console.log('🔄 Layout changed');
+        layoutChangeCount++;
+
+        // Count collisions in current layout
+        const state = dashboard.getState();
+        let totalCollisions = 0;
+        for (let i = 0; i < state.widgets.length; i++) {
+          for (let j = i + 1; j < state.widgets.length; j++) {
+            // This is simplified - actual collision check would use GridEngine
+            totalCollisions++;
+          }
+        }
+        collisionCount = totalCollisions;
+        updateStats();
+      });
+
+      // Add initial widgets
+      const initialWidgets = [
+        { icon: '📊', title: 'Sales Dashboard', desc: 'Real-time sales metrics', w: 4, h: 3, x: 0, y: 0 },
+        { icon: '📈', title: 'Growth Trends', desc: 'Monthly growth analysis', w: 4, h: 3, x: 4, y: 0 },
+        { icon: '💰', title: 'Revenue', desc: 'Total revenue this month', w: 4, h: 3, x: 8, y: 0 },
+        { icon: '👥', title: 'Active Users', desc: '1,234 users online now', w: 3, h: 2, x: 0, y: 3 },
+        { icon: '⚙️', title: 'Settings', desc: 'System configuration', w: 3, h: 2, x: 3, y: 3 },
+        { icon: '📧', title: 'Messages', desc: '12 unread messages', w: 3, h: 2, x: 6, y: 3 },
+        { icon: '🔔', title: 'Notifications', desc: '5 new notifications', w: 3, h: 2, x: 9, y: 3 },
+      ];
+
+      initialWidgets.forEach((w, i) => {
+        dashboard.addWidget({
+          id: `widget-${i + 1}`,
+          x: w.x,
+          y: w.y,
+          w: w.w,
+          h: w.h,
+          content: `
+            <div style="text-align: center;">
+              <div class="widget-icon">${w.icon}</div>
+              <div class="widget-header">${w.title}</div>
+              <div class="widget-body">${w.desc}</div>
+            </div>
+          `,
+        });
+      });
+
+      widgetCounter = initialWidgets.length;
+      updateStats();
+
+      // Control buttons
+      document.getElementById('addWidget').addEventListener('click', () => {
+        widgetCounter++;
+        const icon = icons[Math.floor(Math.random() * icons.length)];
+        dashboard.addWidget({
+          id: `widget-${widgetCounter}`,
+          w: 3,
+          h: 2,
+          content: `
+            <div style="text-align: center;">
+              <div class="widget-icon">${icon}</div>
+              <div class="widget-header">Widget ${widgetCounter}</div>
+              <div class="widget-body">Drag me around!</div>
+            </div>
+          `,
+        });
+      });
+
+      document.getElementById('addLargeWidget').addEventListener('click', () => {
+        widgetCounter++;
+        const icon = icons[Math.floor(Math.random() * icons.length)];
+        dashboard.addWidget({
+          id: `widget-${widgetCounter}`,
+          w: 6,
+          h: 4,
+          content: `
+            <div style="text-align: center; padding-top: 2rem;">
+              <div class="widget-icon" style="font-size: 4rem;">${icon}</div>
+              <div class="widget-header" style="font-size: 1.5rem;">Large Widget ${widgetCounter}</div>
+              <div class="widget-body">I'm a big widget! Try dragging me.</div>
+            </div>
+          `,
+        });
+      });
+
+      document.getElementById('lockWidget').addEventListener('click', () => {
+        dashboard.updateWidget('widget-1', { locked: true });
+        console.log('🔒 Widget 1 is now locked');
+      });
+
+      document.getElementById('unlockWidget').addEventListener('click', () => {
+        dashboard.updateWidget('widget-1', { locked: false });
+        console.log('🔓 Widget 1 is now unlocked');
+      });
+
+      document.getElementById('clearAll').addEventListener('click', () => {
+        const state = dashboard.getState();
+        state.widgets.forEach((w) => dashboard.removeWidget(w.id));
+        widgetCounter = 0;
+        dragCount = 0;
+        resizeCount = 0;
+        collisionCount = 0;
+        layoutChangeCount = 0;
+        updateStats();
+      });
+
+      // Float mode toggle
+      document.getElementById('floatMode').addEventListener('change', (e) => {
+        dashboard.options.floatMode = e.target.checked;
+        console.log(`🌊 Float mode ${e.target.checked ? 'enabled' : 'disabled'}`);
+        if (e.target.checked) {
+          dashboard.compact();
+          dashboard.refresh();
+        }
+      });
+
+      // Animate toggle
+      document.getElementById('animate').addEventListener('change', (e) => {
+        dashboard.options.animate = e.target.checked;
+        const grid = document.querySelector('.iazd-grid');
+        if (e.target.checked) {
+          grid.classList.add('iazd-animate');
+        } else {
+          grid.classList.remove('iazd-animate');
+        }
+        console.log(`✨ Animations ${e.target.checked ? 'enabled' : 'disabled'}`);
+      });
+    </script>
+  </body>
+</html>

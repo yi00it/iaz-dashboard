@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saharos Dashboard Builder - Save Plugin Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .demo-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 28px;
+      color: #2d3748;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #718096;
+      font-size: 16px;
+    }
+
+    .controls {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .controls h2 {
+      font-size: 18px;
+      color: #2d3748;
+      margin-bottom: 15px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .btn-success {
+      background: #48bb78;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #38a169;
+    }
+
+    .btn-danger {
+      background: #f56565;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #e53e3e;
+    }
+
+    .btn-secondary {
+      background: #cbd5e0;
+      color: #2d3748;
+    }
+
+    .btn-secondary:hover {
+      background: #a0aec0;
+    }
+
+    #dashboard {
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      min-height: 600px;
+    }
+
+    .status {
+      background: #f7fafc;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #4a5568;
+    }
+
+    .status strong {
+      color: #2d3748;
+    }
+
+    .widget-content {
+      padding: 20px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .widget-content h3 {
+      font-size: 18px;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+
+    .widget-content p {
+      color: #718096;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <div class="header">
+      <h1>Save Plugin Demo</h1>
+      <p>
+        This demo shows the Save Plugin that automatically persists your dashboard layout to localStorage.
+        Try adding, moving, or removing widgets, then refresh the page to see the state restored!
+      </p>
+    </div>
+
+    <div class="controls">
+      <h2>Controls</h2>
+      <div class="button-group">
+        <button class="btn-primary" onclick="addRandomWidget()">Add Widget</button>
+        <button class="btn-success" onclick="manualSave()">Save Now</button>
+        <button class="btn-secondary" onclick="manualLoad()">Reload from Storage</button>
+        <button class="btn-danger" onclick="clearStorage()">Clear Storage</button>
+      </div>
+      <div class="status" id="status">
+        Status: Auto-save enabled. Changes are automatically saved to localStorage.
+      </div>
+    </div>
+
+    <div id="dashboard"></div>
+  </div>
+
+  <script type="module">
+    import {
+      IAZDashboard,
+      savePlugin
+    } from '../dist/iazd-dashboard.esm.js';
+
+    // Create dashboard with save plugin
+    const dashboard = new IAZDashboard('#dashboard', {
+      columns: 12,
+      rowHeight: 60,
+      margin: 10,
+      draggable: true,
+      resizable: true,
+      animate: true,
+      autoPosition: true,
+      floatMode: true,
+      storageKey: 'iazd-save-plugin-demo',
+      debug: true,
+    }).use(savePlugin);
+
+    // Add some initial widgets if none exist
+    const state = dashboard.getState();
+    if (state.widgets.length === 0) {
+      dashboard.addWidget({
+        id: 'widget-1',
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 3,
+        content: createWidgetContent('Welcome!', 'This widget is auto-saved'),
+      });
+
+      dashboard.addWidget({
+        id: 'widget-2',
+        x: 4,
+        y: 0,
+        w: 4,
+        h: 3,
+        content: createWidgetContent('Persistent', 'Try refreshing the page'),
+      });
+
+      dashboard.addWidget({
+        id: 'widget-3',
+        x: 8,
+        y: 0,
+        w: 4,
+        h: 3,
+        content: createWidgetContent('Auto-Save', 'Changes saved automatically'),
+      });
+    }
+
+    // Helper to create widget content
+    function createWidgetContent(title, description) {
+      const div = document.createElement('div');
+      div.className = 'widget-content';
+      div.innerHTML = `
+        <h3>${title}</h3>
+        <p>${description}</p>
+      `;
+      return div;
+    }
+
+    // Global functions for buttons
+    let widgetCounter = 4;
+
+    window.addRandomWidget = function() {
+      const colors = ['#667eea', '#48bb78', '#ed8936', '#f56565', '#38b2ac'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
+      const widget = dashboard.addWidget({
+        id: `widget-${widgetCounter++}`,
+        w: Math.floor(Math.random() * 3) + 3,
+        h: Math.floor(Math.random() * 2) + 2,
+        content: createWidgetContent(
+          `Widget ${widgetCounter - 1}`,
+          'Auto-saved to localStorage'
+        ),
+      });
+
+      updateStatus('New widget added and saved!');
+    };
+
+    window.manualSave = function() {
+      if (dashboard.saveState) {
+        dashboard.saveState();
+        updateStatus('Dashboard state manually saved!');
+      }
+    };
+
+    window.manualLoad = function() {
+      if (dashboard.loadState) {
+        dashboard.loadState();
+        dashboard.refresh();
+        updateStatus('Dashboard state reloaded from storage!');
+      }
+    };
+
+    window.clearStorage = function() {
+      if (dashboard.clearSavedState) {
+        dashboard.clearSavedState();
+        updateStatus('Storage cleared! Refresh the page to start fresh.');
+      }
+    };
+
+    function updateStatus(message) {
+      const status = document.getElementById('status');
+      status.innerHTML = `<strong>Status:</strong> ${message}`;
+      setTimeout(() => {
+        status.innerHTML = '<strong>Status:</strong> Auto-save enabled. Changes are automatically saved to localStorage.';
+      }, 3000);
+    }
+
+    // Listen to save events
+    dashboard.on('save:success', (data) => {
+      console.log('State saved to localStorage:', data);
+    });
+
+    dashboard.on('load:success', (data) => {
+      console.log('State loaded from localStorage:', data);
+    });
+
+    dashboard.on('plugin:save:ready', (config) => {
+      console.log('Save plugin ready:', config);
+      updateStatus(`Save plugin ready! Storage key: ${config.storageKey}`);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+/**
+ * Saharos Dashboard Builder - Core Styles
+ */
+
+@import './themes.css';
+
+:root {
+  /* Grid */
+  --iazd-grid-bg: #f5f5f5;
+  --iazd-grid-padding: 8px;
+
+  /* Widget */
+  --iazd-widget-bg: #ffffff;
+  --iazd-widget-border: #e0e0e0;
+  --iazd-widget-border-width: 1px;
+  --iazd-widget-shadow: rgba(0, 0, 0, 0.1);
+  --iazd-widget-shadow-hover: rgba(0, 0, 0, 0.15);
+  --iazd-widget-text: #333333;
+
+  /* Radius & Spacing */
+  --iazd-radius: 8px;
+  --iazd-gap: 8px;
+  --iazd-widget-padding: 16px;
+
+  /* Resize Handles */
+  --iazd-handle-size: 12px;
+  --iazd-handle-color: #4a90e2;
+  --iazd-handle-border: #ffffff;
+
+  /* Drag & Drop */
+  --iazd-drag-border: #4a90e2;
+  --iazd-drag-bg: rgba(74, 144, 226, 0.15);
+  --iazd-drag-opacity: 0.3;
+
+  /* Collision */
+  --iazd-collision-border: #e74c3c;
+  --iazd-collision-bg: rgba(231, 76, 60, 0.15);
+
+  /* Transitions */
+  --iazd-transition: 200ms ease;
+}
+
+/* Container */
+.iazd-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: auto;
+}
+
+/* Grid */
+.iazd-grid {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  background: var(--iazd-grid-bg);
+  padding: var(--iazd-gap);
+  box-sizing: border-box;
+}
+
+/* Widget */
+.iazd-widget {
+  position: absolute;
+  background: var(--iazd-widget-bg);
+  border: var(--iazd-widget-border-width) solid var(--iazd-widget-border);
+  border-radius: var(--iazd-radius);
+  box-shadow: 0 2px 8px var(--iazd-widget-shadow);
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: box-shadow var(--iazd-transition);
+  color: var(--iazd-widget-text);
+}
+
+.iazd-widget:hover {
+  box-shadow: 0 4px 16px var(--iazd-widget-shadow-hover);
+}
+
+/* Widget content */
+.iazd-widget-content {
+  width: 100%;
+  height: 100%;
+  padding: var(--iazd-widget-padding);
+  box-sizing: border-box;
+  overflow: auto;
+  color: inherit;
+}
+
+/* Transitions for animated mode */
+.iazd-grid.iazd-animate .iazd-widget {
+  transition: left var(--iazd-transition), top var(--iazd-transition), width var(--iazd-transition),
+    height var(--iazd-transition), box-shadow var(--iazd-transition);
+}
+
+/* Draggable widgets */
+.iazd-widget[data-draggable='true'] {
+  cursor: move;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.iazd-widget[data-draggable='true']:hover {
+  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.3);
+}
+
+/* Dragging state - applied to original widget during drag */
+.iazd-widget.iazd-dragging {
+  opacity: 0.3;
+  z-index: 1;
+}
+
+/* Ghost element - follows pointer during drag */
+.iazd-widget-ghost {
+  position: fixed;
+  border: 2px solid var(--iazd-drag-border);
+  background: var(--iazd-widget-bg);
+  border-radius: var(--iazd-radius);
+  box-shadow: 0 8px 24px var(--iazd-drag-bg);
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.8;
+}
+
+.iazd-widget-ghost .iazd-widget-content {
+  pointer-events: none;
+}
+
+/* Drag preview - shows grid-snapped position */
+.iazd-drag-preview {
+  position: absolute;
+  border: 2px dashed var(--iazd-drag-border);
+  background: var(--iazd-drag-bg);
+  border-radius: var(--iazd-radius);
+  pointer-events: none;
+  z-index: 998;
+  transition: all 0.1s ease;
+}
+
+/* Drag preview with collision */
+.iazd-drag-preview.iazd-drag-preview-collision {
+  border-color: var(--iazd-collision-border);
+  background: var(--iazd-collision-bg);
+}
+
+/* Resize handles */
+.iazd-resize-handle {
+  position: absolute;
+  background: var(--iazd-handle-color);
+  border: 2px solid var(--iazd-handle-border);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity var(--iazd-transition);
+  z-index: 10;
+}
+
+.iazd-widget:hover .iazd-resize-handle {
+  opacity: 1;
+}
+
+/* Southeast (bottom-right) */
+.iazd-resize-handle-se {
+  bottom: -6px;
+  right: -6px;
+  width: var(--iazd-handle-size);
+  height: var(--iazd-handle-size);
+  border-radius: 50%;
+}
+
+/* South (bottom) */
+.iazd-resize-handle-s {
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+/* East (right) */
+.iazd-resize-handle-e {
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 40px;
+  border-radius: 4px;
+}
+
+/* Southwest (bottom-left) */
+.iazd-resize-handle-sw {
+  bottom: -6px;
+  left: -6px;
+  width: var(--iazd-handle-size);
+  height: var(--iazd-handle-size);
+  border-radius: 50%;
+}
+
+/* Northeast (top-right) */
+.iazd-resize-handle-ne {
+  top: -6px;
+  right: -6px;
+  width: var(--iazd-handle-size);
+  height: var(--iazd-handle-size);
+  border-radius: 50%;
+}
+
+/* Northwest (top-left) */
+.iazd-resize-handle-nw {
+  top: -6px;
+  left: -6px;
+  width: var(--iazd-handle-size);
+  height: var(--iazd-handle-size);
+  border-radius: 50%;
+}
+
+/* West (left) */
+.iazd-resize-handle-w {
+  left: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 40px;
+  border-radius: 4px;
+}
+
+/* North (top) */
+.iazd-resize-handle-n {
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+/* Resizing state - applied to widget during resize */
+.iazd-widget.iazd-resizing {
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* Resize preview - shows new size */
+.iazd-resize-preview {
+  position: absolute;
+  border: 2px dashed var(--iazd-drag-border);
+  background: var(--iazd-drag-bg);
+  border-radius: var(--iazd-radius);
+  pointer-events: none;
+  z-index: 998;
+  transition: all 0.1s ease;
+}
+
+/* Resize preview with collision */
+.iazd-resize-preview.iazd-resize-preview-collision {
+  border-color: var(--iazd-collision-border);
+  background: var(--iazd-collision-bg);
+}
+
+/* Locked widget */
+.iazd-widget.iazd-locked {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .iazd-widget-content {
+    padding: 12px;
+  }
+}

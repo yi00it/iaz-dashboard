@@ -1,0 +1,43 @@
+# Source files
+src/
+tests/
+examples/
+
+# Configuration files
+.github/
+.vscode/
+tsconfig.json
+vite.config.js
+vitest.config.js
+
+# Documentation (except README, LICENSE, CHANGELOG)
+IAZ-DASHBOARD.md
+PLUGIN-SYSTEM.md
+RENAME-SUMMARY.md
+IAZD-PREFIX-UPDATE.md
+TESTING.md
+TESTING-SETUP-SUMMARY.md
+
+# Development files
+node_modules/
+coverage/
+*.log
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Build artifacts (temporary)
+.DS_Store
+.env
+.env.local
+*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
