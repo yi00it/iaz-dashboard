@@ -1,6 +1,6 @@
 {
   "name": "iaz-dashboard",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "World-class Vanilla JavaScript dashboard grid & layout builder — zero dependencies",
   "type": "module",
   "main": "./dist/iaz-dashboard.umd.js",

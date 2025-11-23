@@ -94,6 +94,7 @@ export class DragEngine {
       this.gridElement.classList.remove('iazd-animate');
     }
 
+    this.emit('interaction:start', 'drag', widget);
     this.emit('drag:start', widget, { x: widget.x, y: widget.y });
 
     return true;
@@ -142,8 +143,11 @@ export class DragEngine {
     this.cleanup();
 
     // Check if position actually changed
-    if (currentGridX === startWidgetX && currentGridY === startWidgetY) {
+    const moved = currentGridX !== startWidgetX || currentGridY !== startWidgetY;
+
+    if (!moved) {
       this.emit('drag:end', this.state.widget, { x: currentGridX, y: currentGridY, moved: false });
+      this.emit('interaction:end', 'drag', this.state.widget, false);
       this.state = null;
       return false;
     }
@@ -156,6 +160,7 @@ export class DragEngine {
       this.setState({ ...state, widgets: result });
       const updatedWidget = result.find((w) => w.id === widgetId);
       this.emit('drag:end', updatedWidget, { x: currentGridX, y: currentGridY, moved: true });
+      this.emit('interaction:end', 'drag', updatedWidget, true);
     }
 
     this.state = null;

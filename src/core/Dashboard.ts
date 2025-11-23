@@ -72,6 +72,7 @@ export class IAZDashboard extends EventEmitter {
     this.state = {
       columns: this.options.columns!,
       rowHeight: this.options.rowHeight!,
+      margin: this.options.margin,
       widgets: [],
       breakpoints: this.options.breakpoints,
     };
@@ -629,6 +630,34 @@ export class IAZDashboard extends EventEmitter {
 
     this.emit('options:update', newOptions);
     return this;
+  }
+
+  /**
+   * Enable or disable dragging for all widgets
+   */
+  public setDraggable(enabled: boolean): this {
+    return this.updateOptions({ draggable: enabled });
+  }
+
+  /**
+   * Enable or disable resizing for all widgets
+   */
+  public setResizable(enabled: boolean): this {
+    return this.updateOptions({ resizable: enabled });
+  }
+
+  /**
+   * Check if dragging is enabled
+   */
+  public isDraggable(): boolean {
+    return this.options.draggable;
+  }
+
+  /**
+   * Check if resizing is enabled
+   */
+  public isResizable(): boolean {
+    return this.options.resizable;
   }
 
   /**

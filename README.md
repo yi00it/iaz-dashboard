@@ -94,9 +94,48 @@ dashboard.addWidget({
 console.log(dashboard.getState());
 
 // Toggle edit mode (enable/disable drag & resize)
+dashboard.setDraggable(true);
+dashboard.setResizable(true);
+
+// Or use updateOptions for multiple changes
 dashboard.updateOptions({
-  draggable: true,
-  resizable: true
+  draggable: false,
+  resizable: false
+});
+
+// Check current state
+if (dashboard.isDraggable()) {
+  console.log('Dashboard is in edit mode');
+}
+```
+
+## Edit Mode / View Mode
+
+Implement view mode and edit mode for your dashboard:
+
+```js
+const dashboard = new IAZDashboard('#dashboard', {
+  columns: 12,
+  rowHeight: 60,
+  draggable: false,  // Start in view mode
+  resizable: false
+});
+
+// Toggle between modes
+function setEditMode(enabled) {
+  dashboard.setDraggable(enabled);
+  dashboard.setResizable(enabled);
+}
+
+// Listen for changes
+dashboard.on('interaction:start', (type, widget) => {
+  console.log(`Started ${type}ing widget ${widget.id}`);
+});
+
+dashboard.on('interaction:end', (type, widget, changed) => {
+  if (changed) {
+    console.log(`Widget ${widget.id} was ${type}d - save needed!`);
+  }
 });
 ```
 
@@ -310,6 +349,12 @@ loadState(state: DashboardState, opts?: { silent?: boolean }): void
 updateOptions(newOptions: Partial<DashboardOptions>): this
 refresh(): void
 
+// Edit mode control
+setDraggable(enabled: boolean): this
+setResizable(enabled: boolean): this
+isDraggable(): boolean
+isResizable(): boolean
+
 // Widget management
 addWidget(widget: Partial<Widget> & { id: ID }): Widget
 updateWidget(id: ID, patch: Partial<Widget>): Widget | null
@@ -344,6 +389,10 @@ dashboard.on('widget:move', (widget) => {});
 dashboard.on('widget:resize', (widget) => {});
 dashboard.on('widget:update', (widget) => {});
 dashboard.on('layout:change', (state) => {});
+
+// Interaction events (high-level)
+dashboard.on('interaction:start', (type, widget) => {}); // type: 'drag' | 'resize'
+dashboard.on('interaction:end', (type, widget, changed) => {}); // changed: boolean
 
 // Drag events
 dashboard.on('drag:start', (widget, { x, y }) => {});

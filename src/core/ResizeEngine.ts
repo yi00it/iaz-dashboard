@@ -101,6 +101,7 @@ export class ResizeEngine {
       this.gridElement.classList.remove('iazd-animate');
     }
 
+    this.emit('interaction:start', 'resize', widget);
     this.emit('resize:start', widget, { w: widget.w, h: widget.h, handle });
 
     return true;
@@ -221,9 +222,11 @@ export class ResizeEngine {
     // Check if size actually changed
     const sizeChanged = currentW !== startWidgetW || currentH !== startWidgetH;
     const positionChanged = currentX !== startWidgetX || currentY !== startWidgetY;
+    const changed = sizeChanged || positionChanged;
 
-    if (!sizeChanged && !positionChanged) {
+    if (!changed) {
       this.emit('resize:end', this.state.widget, { w: currentW, h: currentH, resized: false });
+      this.emit('interaction:end', 'resize', this.state.widget, false);
       this.state = null;
       return false;
     }
@@ -250,6 +253,7 @@ export class ResizeEngine {
 
       const updatedWidget = result.find((w) => w.id === widgetId);
       this.emit('resize:end', updatedWidget, { w: currentW, h: currentH, resized: true });
+      this.emit('interaction:end', 'resize', updatedWidget, true);
     }
 
     this.state = null;

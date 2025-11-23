@@ -44,6 +44,7 @@ export interface BreakpointLayouts {
 export interface DashboardState {
   columns: number;
   rowHeight: number;
+  margin?: number;
   widgets: Widget[];
   breakpoints?: BreakpointLayouts;
 }
