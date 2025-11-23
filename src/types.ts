@@ -68,6 +68,8 @@ export type RenderWidgetFrameHook = (widget: Widget, helpers: RenderHelpers) => 
  */
 export interface PluginContext {
   dashboard: any; // Will be IAZDashboard
+  state: DashboardState; // Direct access to state
+  events: any; // Event emitter reference
   getState(): DashboardState;
   setState(state: DashboardState, opts?: { silent?: boolean }): void;
   on(event: string, handler: (...args: any[]) => void): void;
@@ -85,8 +87,8 @@ export type IAZDPlugin = (ctx: PluginContext) => void;
  * Dashboard configuration options
  */
 export interface DashboardOptions {
-  columns: number;
-  rowHeight: number;
+  columns?: number;
+  rowHeight?: number;
   margin?: number;
 
   draggable?: boolean;
@@ -94,6 +96,7 @@ export interface DashboardOptions {
 
   animate?: boolean;
   autoPosition?: boolean;
+  float?: boolean; // Alias for floatMode
   floatMode?: boolean;
 
   breakpoints?: BreakpointLayouts;
@@ -102,6 +105,7 @@ export interface DashboardOptions {
   renderWidgetFrame?: RenderWidgetFrameHook;
 
   plugins?: IAZDPlugin[];
+  widgets?: Widget[];
 
   storageKey?: string;
   debug?: boolean;

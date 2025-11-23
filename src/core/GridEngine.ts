@@ -164,6 +164,8 @@ export class GridEngine {
       // Check all widgets for collisions
       for (let i = 0; i < result.length; i++) {
         const widget = result[i];
+        // Skip the moved widget (it's in its final position)
+        if (widget.id === movedWidget.id) continue;
         if (widget.locked || widget.noMove) continue;
 
         const colliding = this.getCollidingWidgets(widget, result);

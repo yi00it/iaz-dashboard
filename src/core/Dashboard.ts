@@ -38,7 +38,7 @@ export class IAZDashboard extends EventEmitter {
   private plugins: IAZDPlugin[] = [];
   private pluginContext: PluginContext | null = null;
 
-  constructor(container: string | HTMLElement, options: DashboardOptions) {
+  constructor(container: string | HTMLElement, options: DashboardOptions = {}) {
     super();
 
     // Resolve container
@@ -48,26 +48,30 @@ export class IAZDashboard extends EventEmitter {
         throw new Error(`Container not found: ${container}`);
       }
       this.container = el;
+    } else if (!container) {
+      throw new Error('Container is required');
     } else {
       this.container = container;
     }
 
     // Merge options with defaults
     this.options = {
+      columns: 12,
+      rowHeight: 60,
       margin: 8,
       draggable: true,
       resizable: true,
       animate: true,
       debug: false,
-      floatMode: false,
+      floatMode: options.float ?? options.floatMode ?? false, // Support both float and floatMode
       autoPosition: true,
       ...options,
     };
 
     // Initialize state
     this.state = {
-      columns: this.options.columns,
-      rowHeight: this.options.rowHeight,
+      columns: this.options.columns!,
+      rowHeight: this.options.rowHeight!,
       widgets: [],
       breakpoints: this.options.breakpoints,
     };
@@ -82,6 +86,11 @@ export class IAZDashboard extends EventEmitter {
 
     // Initialize dashboard
     this.init();
+
+    // Add initial widgets if provided
+    if (options.widgets && options.widgets.length > 0) {
+      options.widgets.forEach((widget) => this.addWidget(widget));
+    }
   }
 
   /**
@@ -129,6 +138,8 @@ export class IAZDashboard extends EventEmitter {
   private createPluginContext(): PluginContext {
     return {
       dashboard: this,
+      state: this.state,
+      events: this,
       getState: () => this.getState(),
       setState: (state: DashboardState, opts?: { silent?: boolean }) => this.loadState(state, opts),
       on: (event: string, handler: (...args: any[]) => void) => this.on(event, handler),
@@ -248,7 +259,7 @@ export class IAZDashboard extends EventEmitter {
         const oldRowHeight = this.state.rowHeight;
 
         this.state.columns = config.columns;
-        this.state.rowHeight = config.rowHeight ?? this.options.rowHeight;
+        this.state.rowHeight = config.rowHeight ?? this.options.rowHeight ?? 60;
 
         // Load layout for new breakpoint (if it exists)
         const breakpointLayout = this.breakpointManager?.getLayoutForBreakpoint(name);
@@ -373,10 +384,34 @@ export class IAZDashboard extends EventEmitter {
   }
 
   /**
+   * Serialize state to JSON string
+   */
+  public serialize(): string {
+    return JSON.stringify(this.state);
+  }
+
+  /**
+   * Load state from JSON string
+   */
+  public load(json: string): void {
+    try {
+      const state = JSON.parse(json);
+      this.loadState(state);
+    } catch (error) {
+      console.error('[IAZD] Failed to load state from JSON:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Load a new state
    */
-  public loadState(state: DashboardState, opts?: { silent?: boolean }): void {
-    this.state = JSON.parse(JSON.stringify(state));
+  public loadState(state: Partial<DashboardState>, opts?: { silent?: boolean }): void {
+    // Merge with current state to preserve columns/rowHeight
+    this.state = {
+      ...this.state,
+      ...JSON.parse(JSON.stringify(state)),
+    };
 
     // Apply float mode compaction if enabled
     if (this.options.floatMode) {
@@ -393,7 +428,7 @@ export class IAZDashboard extends EventEmitter {
   /**
    * Add a widget to the dashboard
    */
-  public addWidget(widget: Partial<Widget> & { id: ID }): Widget {
+  public addWidget(widget: Partial<Widget> & { id: ID }): Widget | null {
     // Auto-position if x/y not provided
     if (this.options.autoPosition && (widget.x === undefined || widget.y === undefined)) {
       const position = GridEngine.findFirstAvailablePosition(
@@ -419,6 +454,15 @@ export class IAZDashboard extends EventEmitter {
     newWidget.y = GridEngine.snapToGrid(newWidget.y);
     newWidget.w = GridEngine.snapToGrid(newWidget.w);
     newWidget.h = GridEngine.snapToGrid(newWidget.h);
+
+    // Emit before:widget:add event to allow plugins to cancel
+    const eventData = { widget: newWidget, cancel: false };
+    this.emit('before:widget:add', eventData);
+
+    // If cancelled by a plugin, return null
+    if (eventData.cancel) {
+      return null;
+    }
 
     // Add widget and resolve collisions
     this.state.widgets.push(newWidget);
@@ -474,7 +518,6 @@ export class IAZDashboard extends EventEmitter {
     const index = this.state.widgets.findIndex((w) => w.id === id);
     if (index === -1) return false;
 
-    const widget = this.state.widgets[index];
     this.state.widgets.splice(index, 1);
 
     // Remove from DOM
@@ -490,7 +533,7 @@ export class IAZDashboard extends EventEmitter {
       this.render();
     }
 
-    this.emit('widget:remove', widget);
+    this.emit('widget:remove', id);
     if (this.options.floatMode) {
       this.emit('layout:change', this.getState());
     }
@@ -557,6 +600,21 @@ export class IAZDashboard extends EventEmitter {
    */
   public compact(): void {
     this.state.widgets = GridEngine.compactLayout(this.state.widgets);
+  }
+
+  /**
+   * Get a widget by ID
+   */
+  public getWidget(id: ID): Widget | null {
+    return this.state.widgets.find((w) => w.id === id) || null;
+  }
+
+  /**
+   * Clear all widgets
+   */
+  public clear(): void {
+    const widgetIds = this.state.widgets.map((w) => w.id);
+    widgetIds.forEach((id) => this.removeWidget(id));
   }
 
   /**

@@ -68,7 +68,8 @@ export function createSnaplinesPlugin(options: SnaplinesPluginOptions = {}): IAZ
   } = options;
 
   return (ctx) => {
-    let container: HTMLElement | null = null;
+    let containerEl: HTMLElement | null = null;
+    let snaplinesContainer: HTMLElement | null = null;
     let verticalLine: HTMLElement | null = null;
     let horizontalLine: HTMLElement | null = null;
 
@@ -79,7 +80,21 @@ export function createSnaplinesPlugin(options: SnaplinesPluginOptions = {}): IAZ
       const dashboardContainer = ctx.dashboard.container;
       if (!dashboardContainer) return;
 
-      container = dashboardContainer;
+      containerEl = dashboardContainer;
+
+      // Create wrapper container for snaplines
+      snaplinesContainer = document.createElement('div');
+      snaplinesContainer.className = 'iazd-snaplines';
+      snaplinesContainer.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+      `;
+      dashboardContainer.appendChild(snaplinesContainer);
 
       const lineStyles = `
         position: absolute;
@@ -99,7 +114,7 @@ export function createSnaplinesPlugin(options: SnaplinesPluginOptions = {}): IAZ
           top: 0;
           display: none;
         `;
-        dashboardContainer.appendChild(verticalLine);
+        snaplinesContainer.appendChild(verticalLine);
       }
 
       if (showHorizontal) {
@@ -113,18 +128,18 @@ export function createSnaplinesPlugin(options: SnaplinesPluginOptions = {}): IAZ
           display: none;
           ${lineStyle === 'dashed' ? `background-image: linear-gradient(to bottom, ${lineColor} 50%, transparent 50%); background-size: 100% 10px;` : ''}
         `;
-        dashboardContainer.appendChild(horizontalLine);
+        snaplinesContainer.appendChild(horizontalLine);
       }
     };
 
     // Calculate widget position in pixels
     const getWidgetRect = (widget: Widget) => {
-      if (!container) return null;
+      if (!containerEl) return null;
 
       const state = ctx.getState();
       const { columns, rowHeight } = state;
       const margin = ctx.options.margin || 8;
-      const containerWidth = container.offsetWidth;
+      const containerWidth = containerEl.offsetWidth;
       const cellWidth = (containerWidth - margin * (columns + 1)) / columns;
 
       return {
@@ -263,8 +278,8 @@ export function createSnaplinesPlugin(options: SnaplinesPluginOptions = {}): IAZ
       ctx.emit('snapline:hide');
     };
 
-    // Create snaplines after dashboard is ready
-    ctx.on('dashboard:ready', createSnaplines);
+    // Create snaplines immediately
+    createSnaplines();
 
     // Listen to drag and resize events
     ctx.on('drag:move', onDragMove);
@@ -276,14 +291,12 @@ export function createSnaplinesPlugin(options: SnaplinesPluginOptions = {}): IAZ
 
     // Clean up on destroy
     ctx.on('dashboard:destroy', () => {
-      if (verticalLine) {
-        verticalLine.remove();
-        verticalLine = null;
+      if (snaplinesContainer) {
+        snaplinesContainer.remove();
+        snaplinesContainer = null;
       }
-      if (horizontalLine) {
-        horizontalLine.remove();
-        horizontalLine = null;
-      }
+      verticalLine = null;
+      horizontalLine = null;
     });
 
     // Emit plugin ready event

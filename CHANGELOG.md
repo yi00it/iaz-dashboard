@@ -7,14 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-11-24
+
 ### Added
-- Comprehensive test suite with 177 tests using Vitest
+- Comprehensive test suite with 177 tests using Vitest (100% pass rate)
 - GitHub Actions CI/CD pipeline
 - Test coverage reporting
 - Detailed testing documentation (TESTING.md)
+- `getWidget(id)` method to retrieve widgets by ID
+- `clear()` method to remove all widgets
+- `serialize()` and `load(json)` methods for JSON serialization
+- `before:widget:add` event for plugin validation
+- `context.state` and `context.events` properties to PluginContext
+- `float` option as alias for `floatMode`
+- `widgets` option in constructor for initial widget loading
+- Snaplines plugin DOM structure with wrapper container
 
 ### Changed
+- Dashboard constructor now accepts partial/no options with sensible defaults (columns=12, rowHeight=60)
+- `loadState()` now merges with existing state instead of replacing it
+- `widget:remove` event now emits widget ID instead of widget object
+- ConstraintsPlugin now emits specific constraint events (`constraint:maxWidgets`, `constraint:minSize`, etc.)
+- ConstraintsPlugin properly blocks invalid widgets before they're added to state
+- Snaplines plugin creates elements immediately on registration
 - Improved documentation structure
+
+### Fixed
+- GridEngine collision resolution now correctly skips the moved widget
+- TypeScript type errors in Dashboard and plugin system
+- Plugin context API consistency across all plugins
+- Test compatibility with actual API implementation
+
+## [1.0.0] - 2025-11-24
+
+### Added
+- Production release with all core features
+- npm package publication
+- CDN availability (jsDelivr, unpkg)
 
 ## [0.7.0] - 2025-11-24
 

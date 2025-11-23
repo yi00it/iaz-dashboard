@@ -84,13 +84,13 @@ export function createConstraintsPlugin(options: ConstraintsPluginOptions = {}):
 
   return (ctx) => {
     // Validation helper
-    const validateWidget = (widget: Widget, state: DashboardState): { valid: boolean; reason?: string } => {
+    const validateWidget = (widget: Widget, state: DashboardState): { valid: boolean; reason?: string; constraintType?: string } => {
       // Check max widgets
       if (maxWidgets !== undefined && state.widgets.length >= maxWidgets) {
         // Check if this is an update to existing widget
         const isUpdate = state.widgets.some((w) => w.id === widget.id);
         if (!isUpdate) {
-          return { valid: false, reason: `Maximum widget limit reached (${maxWidgets})` };
+          return { valid: false, reason: `Maximum widget limit reached (${maxWidgets})`, constraintType: 'maxWidgets' };
         }
       }
 
@@ -100,6 +100,7 @@ export function createConstraintsPlugin(options: ConstraintsPluginOptions = {}):
           return {
             valid: false,
             reason: `Widget size (${widget.w}x${widget.h}) is below minimum (${minWidgetSize.w}x${minWidgetSize.h})`,
+            constraintType: 'minSize',
           };
         }
       }
@@ -110,6 +111,7 @@ export function createConstraintsPlugin(options: ConstraintsPluginOptions = {}):
           return {
             valid: false,
             reason: `Widget size (${widget.w}x${widget.h}) exceeds maximum (${maxWidgetSize.w}x${maxWidgetSize.h})`,
+            constraintType: 'maxSize',
           };
         }
       }
@@ -121,6 +123,7 @@ export function createConstraintsPlugin(options: ConstraintsPluginOptions = {}):
           return {
             valid: false,
             reason: `Widget extends beyond maximum row limit (${maxRows})`,
+            constraintType: 'maxRows',
           };
         }
       }
@@ -137,6 +140,7 @@ export function createConstraintsPlugin(options: ConstraintsPluginOptions = {}):
           return {
             valid: false,
             reason: `Widget overlaps with restricted area at (${area.x}, ${area.y})`,
+            constraintType: 'restrictedArea',
           };
         }
       }
@@ -145,10 +149,10 @@ export function createConstraintsPlugin(options: ConstraintsPluginOptions = {}):
       if (customValidator) {
         const result = customValidator(widget, state);
         if (result === false) {
-          return { valid: false, reason: 'Custom validation failed' };
+          return { valid: false, reason: 'Custom validation failed', constraintType: 'custom' };
         }
         if (typeof result === 'string') {
-          return { valid: false, reason: result };
+          return { valid: false, reason: result, constraintType: 'custom' };
         }
       }
 
@@ -158,28 +162,41 @@ export function createConstraintsPlugin(options: ConstraintsPluginOptions = {}):
     // Track original aspect ratios for widgets
     const aspectRatios = new Map<string | number, number>();
 
-    // Listen to widget add events
-    const originalAddHandler = (widget: Widget) => {
+    // Listen to before:widget:add event to prevent invalid widgets
+    const beforeAddHandler = (eventData: { widget: Widget; cancel: boolean }) => {
       const state = ctx.getState();
-      const validation = validateWidget(widget, state);
+      const validation = validateWidget(eventData.widget, state);
 
       if (!validation.valid) {
+        // Emit generic violation event
         ctx.emit('constraint:violation', {
-          widget,
+          widget: eventData.widget,
           reason: validation.reason,
           type: 'add',
         });
 
+        // Emit specific constraint event
+        if (validation.constraintType) {
+          ctx.emit(`constraint:${validation.constraintType}`, {
+            widget: eventData.widget,
+            reason: validation.reason,
+            type: 'add',
+          });
+        }
+
         if (blockInvalid) {
           console.warn(`[ConstraintsPlugin] Widget add blocked: ${validation.reason}`);
-          // Remove the widget that was just added
-          ctx.dashboard.removeWidget(widget.id);
+          // Cancel the add operation
+          eventData.cancel = true;
         }
-      } else {
-        // Store aspect ratio if locking is enabled
-        if (lockAspectRatio) {
-          aspectRatios.set(widget.id, widget.w / widget.h);
-        }
+      }
+    };
+
+    // Listen to widget:add event to store aspect ratios
+    const afterAddHandler = (widget: Widget) => {
+      // Store aspect ratio if locking is enabled
+      if (lockAspectRatio) {
+        aspectRatios.set(widget.id, widget.w / widget.h);
       }
     };
 
@@ -244,7 +261,8 @@ export function createConstraintsPlugin(options: ConstraintsPluginOptions = {}):
     };
 
     // Register event listeners
-    ctx.on('widget:add', originalAddHandler);
+    ctx.on('before:widget:add', beforeAddHandler);
+    ctx.on('widget:add', afterAddHandler);
     ctx.on('widget:resize', originalResizeHandler);
     ctx.on('widget:move', originalMoveHandler);
     ctx.on('widget:remove', originalRemoveHandler);
