@@ -16,7 +16,7 @@ export function createResizeHandles(handles: ResizeHandle[] = ['se', 's', 'e']):
  */
 export function createResizeHandle(handle: ResizeHandle): HTMLElement {
   const handleEl = document.createElement('div');
-  handleEl.className = `sdb-resize-handle sdb-resize-handle-${handle}`;
+  handleEl.className = `iazd-resize-handle iazd-resize-handle-${handle}`;
   handleEl.setAttribute('data-resize-handle', handle);
 
   // Set cursor based on handle position
