@@ -92,6 +92,12 @@ dashboard.addWidget({
 
 // Get current state
 console.log(dashboard.getState());
+
+// Toggle edit mode (enable/disable drag & resize)
+dashboard.updateOptions({
+  draggable: true,
+  resizable: true
+});
 ```
 
 ## Responsive Breakpoints
@@ -301,6 +307,7 @@ interface DashboardOptions {
 // State management
 getState(): DashboardState
 loadState(state: DashboardState, opts?: { silent?: boolean }): void
+updateOptions(newOptions: Partial<DashboardOptions>): this
 refresh(): void
 
 // Widget management
@@ -328,6 +335,7 @@ destroy(): void
 // Lifecycle events
 dashboard.on('dashboard:ready', (dashboard) => {});
 dashboard.on('dashboard:destroy', (dashboard) => {});
+dashboard.on('options:update', (newOptions) => {});
 
 // Widget events
 dashboard.on('widget:add', (widget) => {});

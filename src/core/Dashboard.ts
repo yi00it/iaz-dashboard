@@ -618,6 +618,20 @@ export class IAZDashboard extends EventEmitter {
   }
 
   /**
+   * Update dashboard options dynamically
+   */
+  public updateOptions(newOptions: Partial<DashboardOptions>): this {
+    // Update options
+    Object.assign(this.options, newOptions);
+
+    // Re-render to apply changes (especially for draggable/resizable)
+    this.render();
+
+    this.emit('options:update', newOptions);
+    return this;
+  }
+
+  /**
    * Refresh the dashboard (re-render)
    */
   public refresh(): void {
