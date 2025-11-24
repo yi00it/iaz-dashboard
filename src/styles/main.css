@@ -40,6 +40,27 @@
   --iazd-transition: 200ms ease;
 }
 
+/* Grid-level CSS variables */
+.iazd-grid {
+  --iazd-columns: 12;
+  --iazd-row-height: 60;
+  --iazd-margin: 8;
+}
+
+/* Widget positioning via CSS variables */
+.iazd-widget {
+  --iazd-widget-x: 0;
+  --iazd-widget-y: 0;
+  --iazd-widget-w: 1;
+  --iazd-widget-h: 1;
+
+  position: absolute;
+  left: calc(var(--iazd-widget-x) / var(--iazd-columns) * 100%);
+  top: calc(var(--iazd-widget-y) * (var(--iazd-row-height) * 1px) + var(--iazd-widget-y) * (var(--iazd-margin) * 1px));
+  width: calc(var(--iazd-widget-w) / var(--iazd-columns) * 100% - var(--iazd-margin) * 1px);
+  height: calc(var(--iazd-widget-h) * (var(--iazd-row-height) * 1px) + (var(--iazd-widget-h) - 1) * (var(--iazd-margin) * 1px));
+}
+
 /* Container
  *
  * By default, the container expands naturally with content (overflow: visible).
@@ -66,9 +87,8 @@
   overflow: visible; /* Prevent internal scrolling */
 }
 
-/* Widget */
+/* Widget base styles (positioning handled via CSS variables above) */
 .iazd-widget {
-  position: absolute;
   background: var(--iazd-widget-bg);
   border: var(--iazd-widget-border-width) solid var(--iazd-widget-border);
   border-radius: var(--iazd-radius);
@@ -275,4 +295,45 @@
   .iazd-widget-content {
     padding: 12px;
   }
+}
+
+/* Size-to-content mode */
+.iazd-widget.iazd-size-to-content {
+  height: auto;
+  min-height: calc(var(--iazd-widget-h) * (var(--iazd-row-height) * 1px) + (var(--iazd-widget-h) - 1) * (var(--iazd-margin) * 1px));
+}
+
+.iazd-widget.iazd-size-to-content .iazd-widget-content {
+  height: auto;
+  min-height: 100%;
+}
+
+/* Sub-grid container */
+.iazd-subgrid-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.iazd-subgrid-container .iazd-container {
+  width: 100%;
+  height: 100%;
+  min-height: auto;
+}
+
+.iazd-subgrid-container .iazd-grid {
+  min-height: auto;
+  background: transparent;
+  padding: var(--iazd-gap, 4px);
+}
+
+/* Nested widget styling - slightly different to distinguish */
+.iazd-subgrid-container .iazd-widget {
+  background: var(--iazd-widget-bg);
+  border: 1px dashed var(--iazd-widget-border);
+}
+
+/* Prevent drag from parent when interacting with sub-grid */
+.iazd-subgrid-container .iazd-widget[data-draggable='true'] {
+  cursor: move;
 }

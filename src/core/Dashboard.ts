@@ -38,6 +38,8 @@ export class IAZDashboard extends EventEmitter {
   private plugins: IAZDPlugin[] = [];
   private pluginContext: PluginContext | null = null;
   private batchMode: boolean = false;
+  private resizeObservers: Map<string | number, ResizeObserver> = new Map();
+  private subGrids: Map<string | number, IAZDashboard> = new Map();
 
   constructor(container: string | HTMLElement, options: DashboardOptions = {}) {
     super();
@@ -104,6 +106,11 @@ export class IAZDashboard extends EventEmitter {
     // Create grid container
     this.gridElement = createElement('div', 'iazd-grid');
     this.container.appendChild(this.gridElement);
+
+    // Set grid-level CSS variables
+    this.gridElement.style.setProperty('--iazd-columns', String(this.state.columns));
+    this.gridElement.style.setProperty('--iazd-row-height', String(this.state.rowHeight));
+    this.gridElement.style.setProperty('--iazd-margin', String(this.options.margin));
 
     // Apply container styles
     this.container.classList.add('iazd-container');
@@ -310,6 +317,12 @@ export class IAZDashboard extends EventEmitter {
           (this.resizeEngine as any).rowHeight = this.state.rowHeight;
         }
 
+        // Update grid CSS variables
+        if (this.gridElement) {
+          this.gridElement.style.setProperty('--iazd-columns', String(this.state.columns));
+          this.gridElement.style.setProperty('--iazd-row-height', String(this.state.rowHeight));
+        }
+
         // Re-render everything
         this.render();
 
@@ -382,7 +395,18 @@ export class IAZDashboard extends EventEmitter {
    * Get current dashboard state
    */
   public getState(): DashboardState {
-    return JSON.parse(JSON.stringify(this.state));
+    const state = JSON.parse(JSON.stringify(this.state));
+
+    // Include sub-grid states
+    state.widgets = state.widgets.map((widget: Widget) => {
+      const subGrid = this.subGrids.get(widget.id);
+      if (subGrid && widget.subGrid) {
+        widget.subGrid.widgets = subGrid.getState().widgets;
+      }
+      return widget;
+    });
+
+    return state;
   }
 
   /**
@@ -779,6 +803,20 @@ export class IAZDashboard extends EventEmitter {
    * Remove a widget element from DOM
    */
   private removeWidgetElement(id: ID): void {
+    // Clean up sub-grid
+    const subGrid = this.subGrids.get(id);
+    if (subGrid) {
+      subGrid.destroy();
+      this.subGrids.delete(id);
+    }
+
+    // Clean up ResizeObserver
+    const observer = this.resizeObservers.get(id);
+    if (observer) {
+      observer.disconnect();
+      this.resizeObservers.delete(id);
+    }
+
     const element = this.widgetElements.get(id);
     if (element) {
       element.remove();
@@ -807,6 +845,18 @@ export class IAZDashboard extends EventEmitter {
 
     // Position the widget
     positionWidget(frame, widget, this.state.columns, this.state.rowHeight, this.options.margin);
+
+    // Handle size-to-content mode
+    const isSizeToContent = widget.sizeToContent ?? this.options.sizeToContent;
+    if (isSizeToContent) {
+      frame.classList.add('iazd-size-to-content');
+      this.setupSizeToContentObserver(widget, frame);
+    }
+
+    // Handle sub-grid
+    if (widget.subGrid) {
+      this.initSubGrid(widget, content);
+    }
 
     // Add draggable attribute and pointer handler
     if (this.options.draggable && !widget.locked && !widget.noMove) {
@@ -837,7 +887,7 @@ export class IAZDashboard extends EventEmitter {
 
     // Add resize handles if resizable
     if (this.options.resizable && !widget.locked && !widget.noResize) {
-      const handles = createResizeHandles(['se', 's', 'e']);
+      const handles = createResizeHandles(this.options.resizeHandles ?? ['nw', 'n', 'ne', 'w', 'e', 'sw', 's', 'se']);
 
       handles.forEach((handleEl) => {
         const onPointerDown = (e: PointerEvent) => {
@@ -878,12 +928,169 @@ export class IAZDashboard extends EventEmitter {
   }
 
   /**
+   * Set up ResizeObserver for size-to-content widgets
+   */
+  private setupSizeToContentObserver(widget: Widget, frame: HTMLElement): void {
+    // Clean up existing observer
+    const existingObserver = this.resizeObservers.get(widget.id);
+    if (existingObserver) {
+      existingObserver.disconnect();
+    }
+
+    const contentEl = frame.querySelector('.iazd-widget-content');
+    if (!contentEl) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const contentHeight = entry.contentRect.height;
+        const computedStyle = getComputedStyle(contentEl);
+        const padding = parseInt(computedStyle.paddingTop) + parseInt(computedStyle.paddingBottom);
+        const totalHeight = contentHeight + padding;
+
+        // Calculate new grid height
+        const rowHeight = this.state.rowHeight;
+        const margin = this.options.margin;
+        const newH = Math.max(widget.minH ?? 1, Math.ceil((totalHeight + margin) / (rowHeight + margin)));
+
+        // Only update if height changed
+        if (newH !== widget.h) {
+          this.updateWidgetHeight(widget.id, newH);
+        }
+      }
+    });
+
+    observer.observe(contentEl);
+    this.resizeObservers.set(widget.id, observer);
+  }
+
+  /**
+   * Update widget height (for size-to-content)
+   */
+  private updateWidgetHeight(id: ID, newH: number): void {
+    const widget = this.state.widgets.find((w) => w.id === id);
+    if (!widget) return;
+
+    const oldH = widget.h;
+    widget.h = newH;
+
+    // Check for collisions and resolve
+    const colliding = GridEngine.getCollidingWidgets(widget, this.state.widgets);
+    if (colliding.length > 0) {
+      const resolved = GridEngine.resolveCollisions(widget, this.state.widgets);
+      if (resolved) {
+        this.state.widgets = resolved;
+        this.render();
+      }
+    } else {
+      this.updateWidgetElement(widget);
+    }
+
+    if (oldH !== newH) {
+      this.emit('widget:resize', widget);
+      this.emit('layout:change', this.getState());
+    }
+  }
+
+  /**
+   * Initialize a sub-grid inside a widget
+   */
+  private initSubGrid(widget: Widget, contentElement: HTMLElement): void {
+    const subGridConfig = widget.subGrid!;
+
+    // Clean up existing sub-grid
+    const existingSubGrid = this.subGrids.get(widget.id);
+    if (existingSubGrid) {
+      existingSubGrid.destroy();
+    }
+
+    // Create sub-grid container
+    const subGridContainer = document.createElement('div');
+    subGridContainer.className = 'iazd-subgrid-container';
+    subGridContainer.style.width = '100%';
+    subGridContainer.style.height = '100%';
+    subGridContainer.style.position = 'relative';
+
+    // Clear content and add sub-grid container
+    contentElement.innerHTML = '';
+    contentElement.appendChild(subGridContainer);
+
+    // Create sub-grid with inherited/overridden options
+    const subGrid = new IAZDashboard(subGridContainer, {
+      columns: subGridConfig.columns ?? 6,
+      rowHeight: subGridConfig.rowHeight ?? 40,
+      margin: subGridConfig.margin ?? 4,
+      draggable: subGridConfig.draggable ?? this.options.draggable,
+      resizable: subGridConfig.resizable ?? this.options.resizable,
+      resizeHandles: subGridConfig.resizeHandles ?? this.options.resizeHandles,
+      animate: subGridConfig.animate ?? this.options.animate,
+      floatMode: subGridConfig.floatMode ?? this.options.floatMode,
+      sizeToContent: subGridConfig.sizeToContent ?? this.options.sizeToContent,
+      widgets: subGridConfig.widgets ?? [],
+      debug: this.options.debug,
+    });
+
+    // Store reference
+    this.subGrids.set(widget.id, subGrid);
+
+    // Forward events from sub-grid with parent context
+    this.forwardSubGridEvents(widget.id, subGrid);
+
+    this.log(`Initialized sub-grid for widget ${widget.id}`);
+  }
+
+  /**
+   * Forward events from sub-grid to parent
+   */
+  private forwardSubGridEvents(parentWidgetId: ID, subGrid: IAZDashboard): void {
+    const eventsToForward = [
+      'widget:add',
+      'widget:remove',
+      'widget:move',
+      'widget:resize',
+      'widget:update',
+      'layout:change',
+      'drag:start',
+      'drag:end',
+      'resize:start',
+      'resize:end',
+    ];
+
+    eventsToForward.forEach((eventName) => {
+      subGrid.on(eventName, (...args: any[]) => {
+        this.emit(`subgrid:${eventName}`, { parentWidgetId, subGrid, originalArgs: args });
+      });
+    });
+  }
+
+  /**
+   * Get the sub-grid instance for a widget
+   */
+  public getSubGrid(widgetId: ID): IAZDashboard | null {
+    return this.subGrids.get(widgetId) || null;
+  }
+
+  /**
+   * Check if a widget has a sub-grid
+   */
+  public hasSubGrid(widgetId: ID): boolean {
+    return this.subGrids.has(widgetId);
+  }
+
+  /**
    * Destroy the dashboard
    */
   public destroy(): void {
     this.log('Destroying dashboard');
 
     this.emit('dashboard:destroy', this);
+
+    // Destroy all sub-grids
+    this.subGrids.forEach((subGrid) => subGrid.destroy());
+    this.subGrids.clear();
+
+    // Clean up all ResizeObservers
+    this.resizeObservers.forEach((observer) => observer.disconnect());
+    this.resizeObservers.clear();
 
     // Destroy drag engine
     if (this.dragEngine) {

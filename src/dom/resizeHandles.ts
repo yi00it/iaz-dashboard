@@ -2,7 +2,7 @@
  * Resize handle creation and management
  */
 
-import type { ResizeHandle } from '../core/ResizeEngine';
+import type { ResizeHandle } from '../types';
 
 /**
  * Create resize handles for a widget

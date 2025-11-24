@@ -250,12 +250,20 @@ export class DragEngine {
   /**
    * Create preview element (shows grid-snapped position)
    */
-  private createPreview(_widget: Widget): void {
+  private createPreview(widget: Widget): void {
     this.previewElement = document.createElement('div');
-    this.previewElement.className = 'iazd-drag-preview';
-    this.previewElement.style.position = 'absolute';
+    this.previewElement.className = 'iazd-drag-preview iazd-widget';
     this.previewElement.style.pointerEvents = 'none';
     this.previewElement.style.zIndex = '998';
+
+    // Set initial CSS variables for positioning
+    this.previewElement.style.setProperty('--iazd-widget-x', String(widget.x));
+    this.previewElement.style.setProperty('--iazd-widget-y', String(widget.y));
+    this.previewElement.style.setProperty('--iazd-widget-w', String(widget.w));
+    this.previewElement.style.setProperty('--iazd-widget-h', String(widget.h));
+    this.previewElement.style.setProperty('--iazd-columns', String(this.options.columns));
+    this.previewElement.style.setProperty('--iazd-row-height', String(this.options.rowHeight));
+    this.previewElement.style.setProperty('--iazd-margin', String(this.options.margin));
 
     this.gridElement.appendChild(this.previewElement);
   }
@@ -267,12 +275,12 @@ export class DragEngine {
     if (!this.previewElement || !this.state) return;
 
     const widget = this.state.widget;
-    const columnWidth = 100 / this.options.columns;
 
-    this.previewElement.style.left = `${gridX * columnWidth}%`;
-    this.previewElement.style.top = `${gridY * this.options.rowHeight + gridY * this.options.margin}px`;
-    this.previewElement.style.width = `calc(${widget.w * columnWidth}% - ${this.options.margin}px)`;
-    this.previewElement.style.height = `${widget.h * this.options.rowHeight + (widget.h - 1) * this.options.margin}px`;
+    // Use CSS variables for positioning
+    this.previewElement.style.setProperty('--iazd-widget-x', String(gridX));
+    this.previewElement.style.setProperty('--iazd-widget-y', String(gridY));
+    this.previewElement.style.setProperty('--iazd-widget-w', String(widget.w));
+    this.previewElement.style.setProperty('--iazd-widget-h', String(widget.h));
 
     // Check for collisions and update preview style
     const state = this.getState();

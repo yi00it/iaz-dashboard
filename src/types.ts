@@ -4,6 +4,8 @@
 
 export type ID = string | number;
 
+export type ResizeHandle = 'se' | 'sw' | 'ne' | 'nw' | 'e' | 's' | 'w' | 'n';
+
 /**
  * Widget represents a single dashboard item on the grid
  */
@@ -22,6 +24,26 @@ export interface Widget {
   noResize?: boolean;
   content?: string | HTMLElement;
   meta?: any;
+  /** Enable size-to-content mode - widget height adjusts to content */
+  sizeToContent?: boolean;
+  /** Sub-grid configuration for nested grids */
+  subGrid?: SubGridOptions;
+}
+
+/**
+ * Sub-grid options for nested grids
+ */
+export interface SubGridOptions {
+  columns?: number;
+  rowHeight?: number;
+  margin?: number;
+  widgets?: Widget[];
+  draggable?: boolean;
+  resizable?: boolean;
+  resizeHandles?: ResizeHandle[];
+  animate?: boolean;
+  floatMode?: boolean;
+  sizeToContent?: boolean;
 }
 
 /**
@@ -94,11 +116,15 @@ export interface DashboardOptions {
 
   draggable?: boolean;
   resizable?: boolean;
+  /** Resize handles to show on widgets */
+  resizeHandles?: ResizeHandle[];
 
   animate?: boolean;
   autoPosition?: boolean;
   float?: boolean; // Alias for floatMode
   floatMode?: boolean;
+  /** Enable size-to-content mode globally - widgets adjust height to content */
+  sizeToContent?: boolean;
 
   breakpoints?: BreakpointLayouts;
 

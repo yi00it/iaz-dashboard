@@ -20,6 +20,8 @@ export type {
   BreakpointConfig,
   BreakpointLayouts,
   ID,
+  ResizeHandle,
+  SubGridOptions,
 } from './types';
 
 export type { GridRect } from './core/GridEngine';

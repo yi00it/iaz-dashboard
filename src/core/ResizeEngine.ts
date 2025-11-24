@@ -3,10 +3,8 @@
  * Handles corner and edge resize operations
  */
 
-import type { Widget, ID, DashboardState } from '../types';
+import type { Widget, ID, DashboardState, ResizeHandle } from '../types';
 import { GridEngine } from './GridEngine';
-
-export type ResizeHandle = 'se' | 'sw' | 'ne' | 'nw' | 'e' | 's' | 'w' | 'n';
 
 interface ResizeState {
   widgetId: ID;
@@ -293,15 +291,20 @@ export class ResizeEngine {
    */
   private createPreview(widget: Widget): void {
     this.previewElement = document.createElement('div');
-    this.previewElement.className = 'iazd-resize-preview';
-    this.previewElement.style.position = 'absolute';
+    this.previewElement.className = 'iazd-resize-preview iazd-widget';
     this.previewElement.style.pointerEvents = 'none';
     this.previewElement.style.zIndex = '998';
 
-    this.gridElement.appendChild(this.previewElement);
+    // Set initial CSS variables for positioning
+    this.previewElement.style.setProperty('--iazd-widget-x', String(widget.x));
+    this.previewElement.style.setProperty('--iazd-widget-y', String(widget.y));
+    this.previewElement.style.setProperty('--iazd-widget-w', String(widget.w));
+    this.previewElement.style.setProperty('--iazd-widget-h', String(widget.h));
+    this.previewElement.style.setProperty('--iazd-columns', String(this.options.columns));
+    this.previewElement.style.setProperty('--iazd-row-height', String(this.options.rowHeight));
+    this.previewElement.style.setProperty('--iazd-margin', String(this.options.margin));
 
-    // Initial position
-    this.updatePreview(widget.x, widget.y, widget.w, widget.h);
+    this.gridElement.appendChild(this.previewElement);
   }
 
   /**
@@ -310,12 +313,11 @@ export class ResizeEngine {
   private updatePreview(gridX: number, gridY: number, gridW: number, gridH: number): void {
     if (!this.previewElement || !this.state) return;
 
-    const columnWidth = 100 / this.options.columns;
-
-    this.previewElement.style.left = `${gridX * columnWidth}%`;
-    this.previewElement.style.top = `${gridY * this.options.rowHeight + gridY * this.options.margin}px`;
-    this.previewElement.style.width = `calc(${gridW * columnWidth}% - ${this.options.margin}px)`;
-    this.previewElement.style.height = `${gridH * this.options.rowHeight + (gridH - 1) * this.options.margin}px`;
+    // Use CSS variables for positioning
+    this.previewElement.style.setProperty('--iazd-widget-x', String(gridX));
+    this.previewElement.style.setProperty('--iazd-widget-y', String(gridY));
+    this.previewElement.style.setProperty('--iazd-widget-w', String(gridW));
+    this.previewElement.style.setProperty('--iazd-widget-h', String(gridH));
 
     // Check for collisions and update preview style
     const state = this.getState();

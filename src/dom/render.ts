@@ -56,7 +56,7 @@ export function getRenderHelpers(): RenderHelpers {
 }
 
 /**
- * Position a widget element on the grid
+ * Position a widget element on the grid using CSS variables
  */
 export function positionWidget(
   element: HTMLElement,
@@ -65,11 +65,14 @@ export function positionWidget(
   rowHeight: number,
   margin: number
 ): void {
-  const columnWidth = 100 / columns;
+  // Set CSS custom properties for positioning
+  element.style.setProperty('--iazd-widget-x', String(widget.x));
+  element.style.setProperty('--iazd-widget-y', String(widget.y));
+  element.style.setProperty('--iazd-widget-w', String(widget.w));
+  element.style.setProperty('--iazd-widget-h', String(widget.h));
 
-  element.style.position = 'absolute';
-  element.style.left = `${widget.x * columnWidth}%`;
-  element.style.top = `${widget.y * rowHeight + widget.y * margin}px`;
-  element.style.width = `calc(${widget.w * columnWidth}% - ${margin}px)`;
-  element.style.height = `${widget.h * rowHeight + (widget.h - 1) * margin}px`;
+  // Grid-level variables (inherited from parent, but can override)
+  element.style.setProperty('--iazd-columns', String(columns));
+  element.style.setProperty('--iazd-row-height', String(rowHeight));
+  element.style.setProperty('--iazd-margin', String(margin));
 }

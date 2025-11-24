@@ -479,6 +479,21 @@ describe('Dashboard', () => {
 
       expect(handler).toHaveBeenCalledWith({ animate: false });
     });
+
+    it('should use custom resize handles when specified', () => {
+      dashboard = new Dashboard(container, {
+        resizeHandles: ['se', 'e'],
+        widgets: [{ id: 1, x: 0, y: 0, w: 4, h: 2 }],
+      });
+
+      const widget = container.querySelector('[data-widget-id="1"]');
+      const handles = widget?.querySelectorAll('.iazd-resize-handle');
+
+      expect(handles?.length).toBe(2);
+      expect(widget?.querySelector('.iazd-resize-handle-se')).not.toBeNull();
+      expect(widget?.querySelector('.iazd-resize-handle-e')).not.toBeNull();
+      expect(widget?.querySelector('.iazd-resize-handle-nw')).toBeNull();
+    });
   });
 
   describe('locked and immutable widgets', () => {
