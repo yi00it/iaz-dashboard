@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IAZ Dashboard - All Features Demo</title>
     <link rel="stylesheet" href="../dist/iaz-dashboard.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
       * {
         margin: 0;
@@ -13,29 +14,35 @@
       }
 
       :root {
-        --color-bg: #0f172a;
-        --color-surface: #1e293b;
-        --color-border: #334155;
-        --color-text: #f1f5f9;
-        --color-text-secondary: #94a3b8;
-        --color-primary: #3b82f6;
-        --color-success: #22c55e;
-        --color-warning: #f59e0b;
-        --color-error: #ef4444;
-        --radius: 12px;
+        --bg: #f5f5f0;
+        --bg-surface: #ffffff;
+        --bg-dim: rgba(0, 0, 0, 0.02);
+        --text: #1a1a1a;
+        --text-secondary: #666666;
+        --border: #e0e0e0;
+        --accent: #1a1a1a;
+        --accent-hover: #333333;
+        --success: #2d6a4f;
+        --warning: #b45309;
+        --radius: 8px;
+      }
+
+      html {
+        font-size: 15px;
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: var(--color-bg);
-        color: var(--color-text);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--bg);
+        color: var(--text);
         min-height: 100vh;
+        line-height: 1.6;
       }
 
       /* Header */
       .header {
-        background: var(--color-surface);
-        border-bottom: 1px solid var(--color-border);
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border);
         padding: 1rem 2rem;
         display: flex;
         align-items: center;
@@ -45,17 +52,20 @@
       }
 
       .header h1 {
-        font-size: 1.25rem;
+        font-size: 1.125rem;
         font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
+        letter-spacing: -0.02em;
       }
 
       .version-badge {
-        background: var(--color-primary);
-        color: white;
-        padding: 0.125rem 0.5rem;
+        font-family: 'Fira Code', monospace;
+        background: var(--bg-dim);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        padding: 0.2rem 0.6rem;
         border-radius: 4px;
         font-size: 0.75rem;
         font-weight: 500;
@@ -69,46 +79,44 @@
       }
 
       .btn {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        color: var(--color-text);
+        font-family: 'Fira Code', monospace;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        color: var(--text);
         padding: 0.5rem 1rem;
-        border-radius: 6px;
-        font-size: 0.875rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
         cursor: pointer;
         transition: all 0.15s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
+        font-weight: 500;
       }
 
       .btn:hover {
-        background: var(--color-border);
+        background: var(--accent);
+        color: var(--bg-surface);
+        border-color: var(--accent);
       }
 
       .btn.primary {
-        background: var(--color-primary);
-        border-color: var(--color-primary);
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--bg-surface);
       }
 
       .btn.primary:hover {
-        background: #2563eb;
+        background: var(--accent-hover);
       }
 
       .btn.success {
-        background: var(--color-success);
-        border-color: var(--color-success);
+        background: var(--success);
+        border-color: var(--success);
+        color: white;
       }
 
       .btn.warning {
-        background: var(--color-warning);
-        border-color: var(--color-warning);
-        color: #000;
-      }
-
-      .btn.danger {
-        background: var(--color-error);
-        border-color: var(--color-error);
+        background: var(--warning);
+        border-color: var(--warning);
+        color: white;
       }
 
       /* Main Layout */
@@ -120,190 +128,229 @@
       /* Sidebar */
       .sidebar {
         width: 280px;
-        background: var(--color-surface);
-        border-right: 1px solid var(--color-border);
+        background: var(--bg-surface);
+        border-right: 1px solid var(--border);
         overflow-y: auto;
-        padding: 1rem;
+        padding: 1.25rem;
         flex-shrink: 0;
       }
 
       .sidebar-section {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.75rem;
       }
 
       .sidebar-section h3 {
-        font-size: 0.75rem;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--color-text-secondary);
-        margin-bottom: 0.75rem;
+        letter-spacing: 0.08em;
+        color: var(--text-secondary);
+        margin-bottom: 0.875rem;
         padding-bottom: 0.5rem;
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
 
       .option-group {
-        margin-bottom: 1rem;
+        margin-bottom: 0.875rem;
       }
 
       .option-group label {
         display: block;
-        font-size: 0.813rem;
-        color: var(--color-text-secondary);
+        font-size: 0.8rem;
+        color: var(--text-secondary);
         margin-bottom: 0.375rem;
       }
 
       .option-group input[type="number"],
       .option-group select {
         width: 100%;
-        background: var(--color-bg);
-        border: 1px solid var(--color-border);
-        color: var(--color-text);
-        padding: 0.5rem;
-        border-radius: 6px;
-        font-size: 0.875rem;
+        font-family: 'Fira Code', monospace;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
       }
 
-      .option-group input[type="checkbox"] {
-        margin-right: 0.5rem;
+      .option-group input[type="number"]:focus,
+      .option-group select:focus {
+        outline: none;
+        border-color: var(--accent);
       }
 
       .checkbox-label {
         display: flex;
         align-items: center;
-        font-size: 0.875rem;
+        font-size: 0.85rem;
         cursor: pointer;
         padding: 0.375rem 0;
+        transition: color 0.15s ease;
       }
 
       .checkbox-label:hover {
-        color: var(--color-primary);
+        color: var(--accent);
+      }
+
+      .checkbox-label input[type="checkbox"] {
+        margin-right: 0.625rem;
+        accent-color: var(--accent);
       }
 
       /* Dashboard Container */
       .dashboard-wrapper {
         flex: 1;
         overflow: auto;
-        padding: 1rem;
+        padding: 1.25rem;
+        background: var(--bg);
       }
 
       .dashboard-container {
         min-height: 800px;
-        background: var(--color-bg);
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
         border-radius: var(--radius);
       }
 
-      /* Custom widget styles */
+      /* Widget styles */
       .widget-header {
         font-weight: 600;
-        font-size: 0.875rem;
+        font-size: 0.85rem;
         margin-bottom: 0.5rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
-      }
-
-      .widget-icon {
-        font-size: 1rem;
+        color: var(--text);
       }
 
       .widget-body {
-        font-size: 0.813rem;
-        color: var(--color-text-secondary);
-        line-height: 1.5;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
       }
 
       .stat-value {
+        font-family: 'Fira Code', monospace;
         font-size: 2rem;
-        font-weight: 700;
-        color: var(--color-primary);
+        font-weight: 600;
+        color: var(--text);
         line-height: 1.2;
+        letter-spacing: -0.02em;
       }
 
       .stat-label {
-        font-size: 0.75rem;
-        color: var(--color-text-secondary);
+        font-family: 'Fira Code', monospace;
+        font-size: 0.7rem;
+        color: var(--text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        margin-top: 0.25rem;
       }
 
       /* Feature badges */
       .feature-tag {
+        font-family: 'Fira Code', monospace;
         display: inline-block;
-        background: var(--color-primary);
-        color: white;
+        background: var(--bg-dim);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
         padding: 0.125rem 0.5rem;
-        border-radius: 4px;
+        border-radius: 3px;
         font-size: 0.625rem;
-        font-weight: 600;
+        font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 0.05em;
       }
 
       .feature-tag.new {
-        background: var(--color-success);
+        background: var(--success);
+        border-color: var(--success);
+        color: white;
       }
 
       /* Event Log */
       .event-log {
-        background: var(--color-bg);
-        border: 1px solid var(--color-border);
-        border-radius: 6px;
+        font-family: 'Fira Code', monospace;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
         padding: 0.5rem;
-        max-height: 200px;
+        max-height: 180px;
         overflow-y: auto;
-        font-family: 'SF Mono', Monaco, monospace;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
       }
 
       .event-item {
         padding: 0.25rem 0.5rem;
-        border-radius: 4px;
+        border-radius: 3px;
         margin-bottom: 0.25rem;
-        background: var(--color-surface);
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
       }
 
       .event-item .time {
-        color: var(--color-text-secondary);
+        color: var(--text-secondary);
         margin-right: 0.5rem;
       }
 
       .event-item .type {
-        color: var(--color-primary);
+        color: var(--text);
         font-weight: 500;
       }
 
-      /* Theme override for dashboard */
+      /* Dashboard theme override */
       .dashboard-container .iazd-grid {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        background: var(--bg);
         border-radius: var(--radius);
       }
 
       .dashboard-container .iazd-widget {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: 8px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
       }
 
       .dashboard-container .iazd-widget:hover {
-        border-color: var(--color-primary);
+        border-color: var(--accent);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      }
+
+      .dashboard-container .iazd-widget-content {
+        padding: 1rem;
+      }
+
+      /* Resize handles - minimal */
+      .dashboard-container .iazd-resize-handle {
+        background: var(--border);
+        border: 1px solid var(--bg-surface);
+      }
+
+      .dashboard-container .iazd-widget:hover .iazd-resize-handle {
+        background: var(--accent);
+      }
+
+      /* Drag preview */
+      .dashboard-container .iazd-drag-preview,
+      .dashboard-container .iazd-resize-preview {
+        border: 2px dashed var(--accent);
+        background: rgba(26, 26, 26, 0.05);
       }
 
       /* Sub-grid styling */
       .dashboard-container .iazd-subgrid-container .iazd-grid {
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px dashed var(--color-primary);
-        border-radius: 6px;
+        background: var(--bg-dim);
+        border: 1px dashed var(--border);
+        border-radius: 4px;
       }
 
       .dashboard-container .iazd-subgrid-container .iazd-widget {
-        background: rgba(59, 130, 246, 0.2);
-        border: 1px solid var(--color-primary);
-      }
-
-      /* Size to content indicator */
-      .size-to-content-demo {
-        transition: all 0.3s ease;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
       }
 
       /* Responsive */
@@ -317,6 +364,34 @@
           width: 100%;
           max-height: 300px;
         }
+
+        .header {
+          padding: 1rem;
+        }
+
+        .controls {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary);
       }
     </style>
   </head>
@@ -324,14 +399,14 @@
     <header class="header">
       <h1>
         IAZ Dashboard
-        <span class="version-badge">v1.5.0</span>
+        <span class="version-badge">v1.5.1</span>
       </h1>
       <div class="controls">
         <button class="btn primary" onclick="addWidget()">+ Add Widget</button>
         <button class="btn success" onclick="addSubGridWidget()">+ Nested Grid</button>
         <button class="btn warning" onclick="addSizeToContentWidget()">+ Auto-Height</button>
         <button class="btn" onclick="toggleEditMode()">Toggle Edit</button>
-        <button class="btn danger" onclick="clearAll()">Clear All</button>
+        <button class="btn" onclick="clearAll()">Clear All</button>
       </div>
     </header>
 
@@ -379,10 +454,10 @@
             <label>Active Handles</label>
             <select id="resizeHandles" onchange="updateResizeHandles()">
               <option value="all">All 8 Handles</option>
-              <option value="corners">Corners Only (nw, ne, sw, se)</option>
-              <option value="edges">Edges Only (n, s, e, w)</option>
-              <option value="se-only">Bottom-Right Only (se)</option>
-              <option value="bottom-right">Bottom + Right (s, e, se)</option>
+              <option value="corners">Corners Only</option>
+              <option value="edges">Edges Only</option>
+              <option value="se-only">Bottom-Right Only</option>
+              <option value="bottom-right">Bottom + Right</option>
             </select>
           </div>
         </div>
@@ -436,7 +511,6 @@
         resizeHandles: ['nw', 'n', 'ne', 'w', 'e', 'sw', 's', 'se'],
         debug: true,
         widgets: [
-          // Regular widgets
           {
             id: 1,
             x: 0,
@@ -444,7 +518,7 @@
             w: 4,
             h: 3,
             content: `
-              <div class="widget-header"><span class="widget-icon">📊</span> Statistics</div>
+              <div class="widget-header">Statistics</div>
               <div class="stat-value">1,234</div>
               <div class="stat-label">Active Users</div>
             `,
@@ -456,7 +530,7 @@
             w: 4,
             h: 3,
             content: `
-              <div class="widget-header"><span class="widget-icon">💰</span> Revenue</div>
+              <div class="widget-header">Revenue</div>
               <div class="stat-value">$52.4K</div>
               <div class="stat-label">This Month</div>
             `,
@@ -468,12 +542,11 @@
             w: 4,
             h: 3,
             content: `
-              <div class="widget-header"><span class="widget-icon">📈</span> Growth</div>
+              <div class="widget-header">Growth</div>
               <div class="stat-value">+24%</div>
               <div class="stat-label">vs Last Month</div>
             `,
           },
-          // Large widget
           {
             id: 4,
             x: 0,
@@ -481,16 +554,15 @@
             w: 8,
             h: 4,
             content: `
-              <div class="widget-header"><span class="widget-icon">🎯</span> Main Chart Area</div>
+              <div class="widget-header">Main Chart Area</div>
               <div class="widget-body">
-                This is a large widget that spans 8 columns and 4 rows.
+                This is a large widget spanning 8 columns and 4 rows.
                 <br><br>
                 Drag the handles to resize, or drag the widget to move it.
                 All 8 resize handles are available (corners + edges).
               </div>
             `,
           },
-          // Locked widget
           {
             id: 5,
             x: 8,
@@ -499,11 +571,10 @@
             h: 2,
             locked: true,
             content: `
-              <div class="widget-header"><span class="widget-icon">🔒</span> Locked Widget</div>
-              <div class="widget-body">This widget cannot be moved or resized.</div>
+              <div class="widget-header">Locked Widget</div>
+              <div class="widget-body">Cannot be moved or resized.</div>
             `,
           },
-          // No resize widget
           {
             id: 6,
             x: 8,
@@ -512,11 +583,10 @@
             h: 2,
             noResize: true,
             content: `
-              <div class="widget-header"><span class="widget-icon">↔️</span> No Resize</div>
+              <div class="widget-header">No Resize</div>
               <div class="widget-body">Can be moved but not resized.</div>
             `,
           },
-          // Size-to-content demo widget
           {
             id: 7,
             x: 0,
@@ -526,17 +596,16 @@
             sizeToContent: true,
             content: `
               <div class="widget-header">
-                <span class="widget-icon">📏</span> Size-to-Content
+                Size-to-Content
                 <span class="feature-tag new">v1.5</span>
               </div>
-              <div class="widget-body size-to-content-demo">
-                This widget automatically adjusts its height based on content.
+              <div class="widget-body">
+                This widget automatically adjusts height based on content.
                 <br><br>
                 <button onclick="expandContent(this)" class="btn" style="margin-top: 0.5rem;">Add More Content</button>
               </div>
             `,
           },
-          // Nested grid widget
           {
             id: 8,
             x: 6,
@@ -555,7 +624,7 @@
             },
             content: `
               <div class="widget-header">
-                <span class="widget-icon">🪆</span> Nested Grid
+                Nested Grid
                 <span class="feature-tag new">v1.5</span>
               </div>
             `,
@@ -563,7 +632,6 @@
         ],
       });
 
-      // Expose dashboard globally
       window.dashboard = dashboard;
 
       // Event logging
@@ -586,14 +654,11 @@
         item.className = 'event-item';
         item.innerHTML = `<span class="time">${time}</span><span class="type">${type}</span>`;
         log.insertBefore(item, log.firstChild);
-
-        // Keep only last 50 events
         while (log.children.length > 50) {
           log.removeChild(log.lastChild);
         }
       }
 
-      // Global functions
       window.addWidget = function() {
         const id = ++widgetCounter;
         dashboard.addWidget({
@@ -601,7 +666,7 @@
           w: 4,
           h: 3,
           content: `
-            <div class="widget-header"><span class="widget-icon">✨</span> Widget ${id}</div>
+            <div class="widget-header">Widget ${id}</div>
             <div class="widget-body">Newly added widget with auto-positioning.</div>
           `,
         });
@@ -618,19 +683,19 @@
             rowHeight: 35,
             margin: 4,
             widgets: [
-              { id: `${id}-sub-1`, x: 0, y: 0, w: 1, h: 2, content: '<div style="text-align:center">A</div>' },
-              { id: `${id}-sub-2`, x: 1, y: 0, w: 1, h: 2, content: '<div style="text-align:center">B</div>' },
-              { id: `${id}-sub-3`, x: 2, y: 0, w: 1, h: 2, content: '<div style="text-align:center">C</div>' },
+              { id: `${id}-sub-1`, x: 0, y: 0, w: 1, h: 2, content: '<div style="text-align:center;font-weight:600">A</div>' },
+              { id: `${id}-sub-2`, x: 1, y: 0, w: 1, h: 2, content: '<div style="text-align:center;font-weight:600">B</div>' },
+              { id: `${id}-sub-3`, x: 2, y: 0, w: 1, h: 2, content: '<div style="text-align:center;font-weight:600">C</div>' },
             ],
           },
-          content: `<div class="widget-header"><span class="widget-icon">🪆</span> Nested ${id}</div>`,
+          content: `<div class="widget-header">Nested ${id}</div>`,
         });
       };
 
       window.addSizeToContentWidget = function() {
         const id = ++widgetCounter;
         const paragraphs = Math.floor(Math.random() * 3) + 1;
-        let content = `<div class="widget-header"><span class="widget-icon">📏</span> Auto ${id}</div>`;
+        let content = `<div class="widget-header">Auto ${id}</div>`;
         content += '<div class="widget-body">';
         for (let i = 0; i < paragraphs; i++) {
           content += '<p style="margin-bottom: 0.5rem;">This widget has auto-height based on content. It will expand or shrink as needed.</p>';
@@ -725,7 +790,6 @@
         logEvent('state:exported', []);
       };
 
-      // Log ready
       logEvent('dashboard:ready', []);
     </script>
   </body>
