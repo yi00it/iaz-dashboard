@@ -40,22 +40,30 @@
   --iazd-transition: 200ms ease;
 }
 
-/* Container */
+/* Container
+ *
+ * By default, the container expands naturally with content (overflow: visible).
+ * For fixed-height scrollable containers, set explicit height on parent:
+ *
+ * .parent { height: 600px; }
+ * .parent .iazd-container { height: 100%; overflow: auto; }
+ */
 .iazd-container {
   width: 100%;
-  height: 100%;
+  min-height: 400px; /* Minimum useful height */
   position: relative;
-  overflow: auto;
+  overflow: visible; /* Allow natural page flow by default */
 }
 
 /* Grid */
 .iazd-grid {
   position: relative;
   width: 100%;
-  min-height: 100%;
+  min-height: 400px; /* Match container minimum */
   background: var(--iazd-grid-bg);
   padding: var(--iazd-gap);
   box-sizing: border-box;
+  overflow: visible; /* Prevent internal scrolling */
 }
 
 /* Widget */
