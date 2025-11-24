@@ -37,6 +37,7 @@ export class IAZDashboard extends EventEmitter {
   private pointerHandlers: Map<string, (e: PointerEvent) => void> = new Map();
   private plugins: IAZDPlugin[] = [];
   private pluginContext: PluginContext | null = null;
+  private batchMode: boolean = false;
 
   constructor(container: string | HTMLElement, options: DashboardOptions = {}) {
     super();
@@ -427,9 +428,52 @@ export class IAZDashboard extends EventEmitter {
   }
 
   /**
+   * Begin batch mode - disable rendering until endBatch() is called
+   * Useful for adding multiple widgets efficiently
+   */
+  public beginBatch(): this {
+    this.batchMode = true;
+    // Disable animations during batch to prevent stuttering
+    if (this.gridElement && this.options.animate) {
+      this.gridElement.classList.remove('iazd-animate');
+    }
+    this.log('Batch mode enabled');
+    return this;
+  }
+
+  /**
+   * End batch mode and perform a single render
+   */
+  public endBatch(): this {
+    this.batchMode = false;
+
+    // Apply float mode compaction once if enabled
+    if (this.options.floatMode) {
+      this.compact();
+    }
+
+    // Render once
+    this.render();
+
+    // Re-enable animations after render completes
+    if (this.gridElement && this.options.animate) {
+      // Use requestAnimationFrame to ensure DOM updates are complete
+      requestAnimationFrame(() => {
+        if (this.gridElement) {
+          this.gridElement.classList.add('iazd-animate');
+        }
+      });
+    }
+
+    this.emit('layout:change', this.getState());
+    this.log('Batch mode disabled, rendered all widgets');
+    return this;
+  }
+
+  /**
    * Add a widget to the dashboard
    */
-  public addWidget(widget: Partial<Widget> & { id: ID }): Widget | null {
+  public addWidget(widget: Partial<Widget> & { id: ID }, options?: { skipCollisions?: boolean; silent?: boolean }): Widget | null {
     // Auto-position if x/y not provided
     if (this.options.autoPosition && (widget.x === undefined || widget.y === undefined)) {
       const position = GridEngine.findFirstAvailablePosition(
@@ -465,31 +509,45 @@ export class IAZDashboard extends EventEmitter {
       return null;
     }
 
-    // Add widget and resolve collisions
+    // Add widget to state
     this.state.widgets.push(newWidget);
 
-    // Resolve collisions if necessary
-    const colliding = GridEngine.getCollidingWidgets(newWidget, this.state.widgets);
-    if (colliding.length > 0) {
-      const resolved = GridEngine.resolveCollisions(newWidget, this.state.widgets);
-      if (resolved) {
-        this.state.widgets = resolved;
+    // Resolve collisions if necessary (unless skipCollisions is true)
+    const skipCollisions = options?.skipCollisions ?? false;
+    let colliding: Widget[] = [];
+
+    if (!skipCollisions) {
+      colliding = GridEngine.getCollidingWidgets(newWidget, this.state.widgets);
+      if (colliding.length > 0) {
+        const resolved = GridEngine.resolveCollisions(newWidget, this.state.widgets);
+        if (resolved) {
+          this.state.widgets = resolved;
+        }
       }
     }
 
-    // Apply float mode compaction if enabled
-    if (this.options.floatMode) {
+    // Apply float mode compaction if enabled (only if not in batch mode)
+    if (this.options.floatMode && !this.batchMode) {
       this.compact();
     }
 
-    this.renderWidget(newWidget);
+    // Render the widget (only if not in batch mode)
+    if (!this.batchMode) {
+      if (colliding.length > 0) {
+        // Re-render all widgets since positions may have changed
+        this.render();
+      } else {
+        // Just render the new widget
+        this.renderWidget(newWidget);
+      }
+    }
 
-    // Emit events
-    this.emit('widget:add', newWidget);
-    if (colliding.length > 0) {
-      this.emit('layout:change', this.getState());
-      // Re-render all widgets since positions may have changed
-      this.render();
+    // Emit events (unless silent)
+    if (!options?.silent) {
+      this.emit('widget:add', newWidget);
+      if (colliding.length > 0 && !this.batchMode) {
+        this.emit('layout:change', this.getState());
+      }
     }
 
     return newWidget;
@@ -522,11 +580,7 @@ export class IAZDashboard extends EventEmitter {
     this.state.widgets.splice(index, 1);
 
     // Remove from DOM
-    const element = this.widgetElements.get(id);
-    if (element) {
-      element.remove();
-      this.widgetElements.delete(id);
-    }
+    this.removeWidgetElement(id);
 
     // Apply float mode compaction if enabled
     if (this.options.floatMode) {
@@ -668,18 +722,43 @@ export class IAZDashboard extends EventEmitter {
   }
 
   /**
-   * Render all widgets
+   * Render all widgets (with incremental updates)
    */
   private render(): void {
     if (!this.gridElement) return;
 
-    // Clear existing widgets
-    this.widgetElements.clear();
-    this.gridElement.innerHTML = '';
+    // Get current widget IDs in the DOM
+    const existingIds = new Set(this.widgetElements.keys());
+    // Get current widget IDs in state
+    const currentIds = new Set(this.state.widgets.map(w => w.id));
 
-    // Render each widget
+    // Remove widgets that are no longer in state
+    for (const id of existingIds) {
+      if (!currentIds.has(id)) {
+        this.removeWidgetElement(id);
+      }
+    }
+
+    // Add or update widgets
     for (const widget of this.state.widgets) {
-      this.renderWidget(widget);
+      if (existingIds.has(widget.id)) {
+        // Widget exists, just update position
+        this.updateWidgetElement(widget);
+      } else {
+        // Widget is new, render it
+        this.renderWidget(widget);
+      }
+    }
+  }
+
+  /**
+   * Remove a widget element from DOM
+   */
+  private removeWidgetElement(id: ID): void {
+    const element = this.widgetElements.get(id);
+    if (element) {
+      element.remove();
+      this.widgetElements.delete(id);
     }
   }
 

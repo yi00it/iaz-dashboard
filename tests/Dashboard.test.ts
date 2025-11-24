@@ -462,4 +462,109 @@ describe('Dashboard', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('batch operations', () => {
+    it('should support batch mode for adding multiple widgets', () => {
+      dashboard = new Dashboard(container, { animate: true });
+
+      const renderSpy = vi.spyOn(dashboard as any, 'render');
+
+      dashboard.beginBatch();
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
+      dashboard.addWidget({ id: '2', x: 4, y: 0, w: 4, h: 3, content: 'Widget 2' });
+      dashboard.addWidget({ id: '3', x: 8, y: 0, w: 4, h: 3, content: 'Widget 3' });
+      dashboard.endBatch();
+
+      // Should only render once at the end
+      expect(renderSpy).toHaveBeenCalledTimes(1);
+
+      const state = dashboard.getState();
+      expect(state.widgets).toHaveLength(3);
+    });
+
+    it('should disable animations during batch and re-enable after', () => {
+      dashboard = new Dashboard(container, { animate: true });
+      const gridElement = container.querySelector('.iazd-grid');
+
+      expect(gridElement?.classList.contains('iazd-animate')).toBe(true);
+
+      dashboard.beginBatch();
+      expect(gridElement?.classList.contains('iazd-animate')).toBe(false);
+
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
+      dashboard.endBatch();
+
+      // Need to wait for requestAnimationFrame
+      return new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          expect(gridElement?.classList.contains('iazd-animate')).toBe(true);
+          resolve(undefined);
+        });
+      });
+    });
+
+    it('should skip collision detection when skipCollisions option is true', () => {
+      dashboard = new Dashboard(container);
+
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
+
+      // Add widget at same position with skipCollisions - should not move
+      dashboard.addWidget({ id: '2', x: 0, y: 0, w: 4, h: 3, content: 'Widget 2' }, { skipCollisions: true });
+
+      const widget2 = dashboard.getWidget('2');
+      // Widget should remain at (0, 0) since collision detection was skipped
+      expect(widget2?.x).toBe(0);
+      expect(widget2?.y).toBe(0);
+    });
+
+    it('should apply floatMode compaction once in batch mode', () => {
+      dashboard = new Dashboard(container, { floatMode: true });
+
+      const compactSpy = vi.spyOn(dashboard, 'compact');
+
+      dashboard.beginBatch();
+      dashboard.addWidget({ id: '1', x: 0, y: 5, w: 4, h: 3, content: 'Widget 1' });
+      dashboard.addWidget({ id: '2', x: 4, y: 5, w: 4, h: 3, content: 'Widget 2' });
+      dashboard.endBatch();
+
+      // Should only compact once at the end
+      expect(compactSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should emit layout:change event once after batch', () => {
+      dashboard = new Dashboard(container);
+      const layoutChangeSpy = vi.fn();
+      dashboard.on('layout:change', layoutChangeSpy);
+
+      dashboard.beginBatch();
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
+      dashboard.addWidget({ id: '2', x: 4, y: 0, w: 4, h: 3, content: 'Widget 2' });
+      dashboard.endBatch();
+
+      // Should emit once at the end
+      expect(layoutChangeSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('incremental rendering', () => {
+    it('should only update positions without destroying DOM elements', () => {
+      dashboard = new Dashboard(container);
+
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
+      dashboard.addWidget({ id: '2', x: 4, y: 0, w: 4, h: 3, content: 'Widget 2' });
+
+      const widget1Element = container.querySelector('[data-widget-id="1"]') as HTMLElement;
+      const widget2Element = container.querySelector('[data-widget-id="2"]') as HTMLElement;
+
+      // Move widget 1
+      dashboard.moveWidget('1', 8, 0);
+
+      // Elements should still be the same objects (not recreated)
+      const widget1ElementAfter = container.querySelector('[data-widget-id="1"]') as HTMLElement;
+      const widget2ElementAfter = container.querySelector('[data-widget-id="2"]') as HTMLElement;
+
+      expect(widget1ElementAfter).toBe(widget1Element);
+      expect(widget2ElementAfter).toBe(widget2Element);
+    });
+  });
 });
