@@ -3,6 +3,11 @@
 A TypeScript dashboard grid library with zero dependencies.
 
 [![npm version](https://img.shields.io/npm/v/iaz-dashboard.svg?style=flat-square)](https://www.npmjs.com/package/iaz-dashboard)
+[![npm downloads](https://img.shields.io/npm/dm/iaz-dashboard.svg?style=flat-square)](https://www.npmjs.com/package/iaz-dashboard)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/iaz-dashboard?style=flat-square)](https://bundlephobia.com/package/iaz-dashboard)
+[![CI](https://img.shields.io/github/actions/workflow/status/yi00it/iaz-dashboard/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/yi00it/iaz-dashboard/actions)
+[![codecov](https://img.shields.io/codecov/c/github/yi00it/iaz-dashboard?style=flat-square)](https://codecov.io/gh/yi00it/iaz-dashboard)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=flat-square)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 [Live Demo](https://yi00it.github.io/iaz-dashboard/) · [GitHub](https://github.com/yi00it/iaz-dashboard)
