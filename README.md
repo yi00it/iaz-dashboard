@@ -5,19 +5,7 @@ A TypeScript dashboard grid library with zero dependencies.
 [![npm version](https://img.shields.io/npm/v/iaz-dashboard.svg?style=flat-square)](https://www.npmjs.com/package/iaz-dashboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-[Live Demo](https://yi00it.github.io/iaz-dashboard/) · [Documentation](./docs)
-
-## What it does
-
-- Grid-based widget layout with drag & drop
-- 8-direction resize handles
-- Collision detection and auto-positioning
-- Responsive breakpoints
-- Nested grids (sub-dashboards)
-- Size-to-content (auto-height widgets)
-- CSS variable positioning
-- Plugin system
-- Works with any framework or plain JavaScript
+[Live Demo](https://yi00it.github.io/iaz-dashboard/) · [GitHub](https://github.com/yi00it/iaz-dashboard)
 
 ## Install
 
@@ -25,14 +13,40 @@ A TypeScript dashboard grid library with zero dependencies.
 npm install iaz-dashboard
 ```
 
-Or use a CDN:
+Or include directly via CDN:
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/iaz-dashboard/dist/iaz-dashboard.css">
+<link href="https://unpkg.com/iaz-dashboard/dist/iaz-dashboard.css" rel="stylesheet" />
 <script src="https://unpkg.com/iaz-dashboard/dist/iaz-dashboard.umd.js"></script>
 ```
 
-## Usage
+## Basic Usage
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="https://unpkg.com/iaz-dashboard/dist/iaz-dashboard.css" rel="stylesheet" />
+  <script src="https://unpkg.com/iaz-dashboard/dist/iaz-dashboard.umd.js"></script>
+</head>
+<body>
+  <div id="dashboard"></div>
+
+  <script>
+    const dashboard = new IAZDashboard('#dashboard', {
+      columns: 12,
+      rowHeight: 60
+    });
+
+    dashboard.addWidget({ id: 1, x: 0, y: 0, w: 4, h: 2, content: 'Widget 1' });
+    dashboard.addWidget({ id: 2, x: 4, y: 0, w: 4, h: 2, content: 'Widget 2' });
+    dashboard.addWidget({ id: 3, x: 8, y: 0, w: 4, h: 2, content: 'Widget 3' });
+  </script>
+</body>
+</html>
+```
+
+Or with ES modules:
 
 ```js
 import { IAZDashboard } from 'iaz-dashboard';
@@ -40,28 +54,37 @@ import 'iaz-dashboard/dist/iaz-dashboard.css';
 
 const dashboard = new IAZDashboard('#dashboard', {
   columns: 12,
-  rowHeight: 60,
-  margin: 16
+  rowHeight: 60
 });
 
-dashboard.addWidget({
-  id: 'widget-1',
-  x: 0,
-  y: 0,
-  w: 4,
-  h: 3,
-  content: '<h3>Widget</h3>'
-});
+dashboard.addWidget({ id: 1, x: 0, y: 0, w: 4, h: 2, content: 'Widget 1' });
 ```
 
-### Edit Mode
+## Features
+
+- Grid-based layout with drag & drop
+- 8-direction resize handles
+- Collision detection
+- Responsive breakpoints
+- Nested grids
+- Size-to-content (auto-height)
+- Plugin system
+- Works with any framework
+
+## Edit Mode
+
+Toggle drag and resize interactions:
 
 ```js
-// Disable interactions (view mode)
-dashboard.setDraggable(false);
-dashboard.setResizable(false);
+// Start in view mode
+const dashboard = new IAZDashboard('#dashboard', {
+  columns: 12,
+  rowHeight: 60,
+  draggable: false,
+  resizable: false
+});
 
-// Enable interactions (edit mode)
+// Enable edit mode
 dashboard.setDraggable(true);
 dashboard.setResizable(true);
 
@@ -73,92 +96,88 @@ dashboard.on('interaction:end', (type, widget, changed) => {
 });
 ```
 
-### Responsive Breakpoints
+## Responsive Breakpoints
 
 ```js
 const dashboard = new IAZDashboard('#dashboard', {
   columns: 12,
   rowHeight: 60,
   breakpoints: {
-    mobile: { width: 0, columns: 1, rowHeight: 80 },
-    tablet: { width: 640, columns: 6, rowHeight: 70 },
-    desktop: { width: 1024, columns: 12, rowHeight: 60 }
+    mobile: { width: 0, columns: 1 },
+    tablet: { width: 640, columns: 6 },
+    desktop: { width: 1024, columns: 12 }
   }
 });
 
 dashboard.on('breakpoint:change', ({ name }) => {
-  console.log(`Now using ${name} layout`);
+  console.log(`Layout: ${name}`);
 });
 ```
 
-### Size-to-Content
+## Size-to-Content
 
-Widgets that automatically adjust height based on content:
+Widgets that auto-adjust height based on content:
 
 ```js
 dashboard.addWidget({
-  id: 'auto-height',
-  x: 0,
-  y: 0,
-  w: 4,
-  h: 2,
+  id: 'auto',
+  x: 0, y: 0, w: 4, h: 2,
   sizeToContent: true,
-  content: '<p>Height adjusts to content</p>'
+  content: '<p>Height adjusts automatically</p>'
 });
 ```
 
-### Nested Grids
+## Nested Grids
 
 Create sub-dashboards inside widgets:
 
 ```js
 dashboard.addWidget({
   id: 'container',
-  x: 0,
-  y: 0,
-  w: 8,
-  h: 6,
+  x: 0, y: 0, w: 8, h: 6,
   subGrid: {
-    columns: 6,
+    columns: 4,
     rowHeight: 40,
     widgets: [
-      { id: 'nested-1', x: 0, y: 0, w: 3, h: 2 },
-      { id: 'nested-2', x: 3, y: 0, w: 3, h: 2 }
+      { id: 'sub-1', x: 0, y: 0, w: 2, h: 2 },
+      { id: 'sub-2', x: 2, y: 0, w: 2, h: 2 }
     ]
   }
 });
 
 // Access nested dashboard
-const nestedDashboard = dashboard.getSubGrid('container');
+const nested = dashboard.getSubGrid('container');
 ```
 
-### Custom Rendering
+## Custom Rendering
 
 ```js
 const dashboard = new IAZDashboard('#dashboard', {
   columns: 12,
   rowHeight: 60,
   renderWidget: (widget, helpers) => {
-    const content = helpers.createElement('div', 'custom-widget');
-    content.innerHTML = `<h3>${widget.meta?.title || 'Widget'}</h3>`;
-    return content;
+    const el = helpers.createElement('div', 'my-widget');
+    el.innerHTML = `<h3>${widget.meta?.title || 'Widget'}</h3>`;
+    return el;
   }
 });
 ```
 
-### Themes
+## Themes
 
-```js
-// Built-in themes
-const container = document.querySelector('.iazd-container');
-container.classList.add('iazd-theme-dark');
-
-// Available: default, iazd-theme-dark, iazd-theme-minimal,
-// iazd-theme-colorful, iazd-theme-glass, iazd-theme-neon
+```html
+<!-- Add theme class to container -->
+<script>
+  const container = document.querySelector('.iazd-container');
+  container.classList.add('iazd-theme-dark');
+</script>
 ```
 
+Available: `iazd-theme-dark`, `iazd-theme-minimal`, `iazd-theme-colorful`, `iazd-theme-glass`, `iazd-theme-neon`
+
+Custom theme with CSS variables:
+
 ```css
-/* Custom theme */
 .iazd-container.my-theme {
   --iazd-grid-bg: #f5f5f5;
   --iazd-widget-bg: #ffffff;
@@ -167,7 +186,7 @@ container.classList.add('iazd-theme-dark');
 }
 ```
 
-### Plugins
+## Plugins
 
 ```js
 import { IAZDashboard, savePlugin, snaplinesPlugin } from 'iaz-dashboard';
@@ -180,122 +199,103 @@ const dashboard = new IAZDashboard('#dashboard', {
   .use(savePlugin)
   .use(snaplinesPlugin);
 
-// Save plugin adds: saveState(), loadState(), clearSavedState()
+// Save plugin methods
 dashboard.saveState();
+dashboard.loadState();
+dashboard.clearSavedState();
 ```
 
-## API
+## API Reference
 
 ### Options
 
-```ts
-interface DashboardOptions {
-  columns: number;
-  rowHeight: number;
-  margin?: number;              // default: 8
-  draggable?: boolean;          // default: true
-  resizable?: boolean;          // default: true
-  animate?: boolean;            // default: true
-  floatMode?: boolean;          // default: false
-  autoPosition?: boolean;       // default: true
-  breakpoints?: BreakpointLayouts;
-  renderWidget?: RenderWidgetHook;
-  renderWidgetFrame?: RenderWidgetFrameHook;
-}
-```
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `columns` | number | - | Number of grid columns |
+| `rowHeight` | number | - | Height of each row in pixels |
+| `margin` | number | 8 | Gap between widgets |
+| `draggable` | boolean | true | Enable drag & drop |
+| `resizable` | boolean | true | Enable resizing |
+| `animate` | boolean | true | Enable animations |
+| `floatMode` | boolean | false | Auto-compact layout |
+| `autoPosition` | boolean | true | Auto-find position for new widgets |
 
-### Widget
+### Widget Properties
 
-```ts
-interface Widget {
-  id: string | number;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  content?: string | HTMLElement;
-  minW?: number;
-  minH?: number;
-  maxW?: number;
-  maxH?: number;
-  locked?: boolean;
-  noMove?: boolean;
-  noResize?: boolean;
-  sizeToContent?: boolean;
-  sizeToContentMin?: number;
-  sizeToContentMax?: number;
-  subGrid?: SubGridOptions;
-  meta?: any;
-}
-```
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | string \| number | Unique identifier |
+| `x`, `y` | number | Grid position |
+| `w`, `h` | number | Size in grid units |
+| `content` | string \| HTMLElement | Widget content |
+| `minW`, `minH`, `maxW`, `maxH` | number | Size constraints |
+| `locked` | boolean | Prevent move and resize |
+| `noMove` | boolean | Prevent move only |
+| `noResize` | boolean | Prevent resize only |
+| `sizeToContent` | boolean | Auto-adjust height |
+| `subGrid` | object | Nested grid options |
 
 ### Methods
 
-```ts
-// Widgets
-addWidget(widget): Widget
-updateWidget(id, patch): Widget | null
-removeWidget(id): boolean
-moveWidget(id, x, y): boolean
-resizeWidget(id, w, h): boolean
+```js
+// Widget management
+dashboard.addWidget(widget)
+dashboard.updateWidget(id, patch)
+dashboard.removeWidget(id)
+dashboard.moveWidget(id, x, y)
+dashboard.resizeWidget(id, w, h)
 
 // State
-getState(): DashboardState
-loadState(state): void
-updateOptions(options): this
-refresh(): void
-compact(): void
+dashboard.getState()
+dashboard.loadState(state)
+dashboard.updateOptions(options)
+dashboard.refresh()
+dashboard.compact()
 
 // Edit mode
-setDraggable(enabled): this
-setResizable(enabled): this
-isDraggable(): boolean
-isResizable(): boolean
+dashboard.setDraggable(enabled)
+dashboard.setResizable(enabled)
+dashboard.isDraggable()
+dashboard.isResizable()
 
-// Sub-grids
-getSubGrid(widgetId): IAZDashboard | undefined
-hasSubGrid(widgetId): boolean
+// Nested grids
+dashboard.getSubGrid(widgetId)
+dashboard.hasSubGrid(widgetId)
 
 // Events
-on(event, handler): void
-off(event, handler): void
-once(event, handler): void
+dashboard.on(event, handler)
+dashboard.off(event, handler)
 
-// Lifecycle
-destroy(): void
+// Cleanup
+dashboard.destroy()
 ```
 
 ### Events
 
-```ts
-// Widget lifecycle
-'widget:add', 'widget:remove', 'widget:move', 'widget:resize', 'widget:update'
+```js
+// Widget events
+dashboard.on('widget:add', (widget) => {});
+dashboard.on('widget:remove', (widget) => {});
+dashboard.on('widget:move', (widget) => {});
+dashboard.on('widget:resize', (widget) => {});
 
-// Interactions
-'interaction:start'  // (type: 'drag' | 'resize', widget)
-'interaction:end'    // (type, widget, changed: boolean)
+// Interaction events
+dashboard.on('interaction:start', (type, widget) => {});
+dashboard.on('interaction:end', (type, widget, changed) => {});
 
-// Drag
-'drag:start', 'drag:move', 'drag:end', 'drag:cancel'
+// Drag events
+dashboard.on('drag:start', (widget, pos) => {});
+dashboard.on('drag:move', (widget, pos) => {});
+dashboard.on('drag:end', (widget, pos) => {});
 
-// Resize
-'resize:start', 'resize:move', 'resize:end', 'resize:cancel'
+// Resize events
+dashboard.on('resize:start', (widget, size) => {});
+dashboard.on('resize:move', (widget, size) => {});
+dashboard.on('resize:end', (widget, size) => {});
 
-// Layout
-'layout:change', 'breakpoint:change', 'options:update'
-
-// Lifecycle
-'dashboard:ready', 'dashboard:destroy'
-```
-
-## Development
-
-```bash
-npm install
-npm run dev          # dev server
-npm run build        # build library
-npm run test         # run tests
-npm run typecheck    # type check
+// Layout events
+dashboard.on('layout:change', (state) => {});
+dashboard.on('breakpoint:change', ({ name, config }) => {});
 ```
 
 ## License
