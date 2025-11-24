@@ -809,13 +809,13 @@ const nested = el.gridstack;</pre>
       <div id="gs-bench" class="grid-stack"></div>
     </div>
 
-    <!-- Load both libraries -->
-    <link rel="stylesheet" href="https://esm.sh/iaz-dashboard@1.5.1/dist/iaz-dashboard.css" />
+    <!-- Load both libraries from same CDN for fair comparison -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/iaz-dashboard@1.5.1/dist/iaz-dashboard.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@12.3.3/dist/gridstack.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/iaz-dashboard@1.5.1/dist/iaz-dashboard.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gridstack@12.3.3/dist/gridstack-all.js"></script>
 
-    <script type="module">
-      import { IAZDashboard } from 'https://esm.sh/iaz-dashboard@1.5.1';
+    <script>
 
       const runBtn = document.getElementById('runBenchmark');
       const iazResult = document.getElementById('iazResult');
