@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IAZ Dashboard - All Features Demo</title>
+    <link rel="stylesheet" href="../dist/iaz-dashboard.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --color-bg: #0f172a;
+        --color-surface: #1e293b;
+        --color-border: #334155;
+        --color-text: #f1f5f9;
+        --color-text-secondary: #94a3b8;
+        --color-primary: #3b82f6;
+        --color-success: #22c55e;
+        --color-warning: #f59e0b;
+        --color-error: #ef4444;
+        --radius: 12px;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: var(--color-bg);
+        color: var(--color-text);
+        min-height: 100vh;
+      }
+
+      /* Header */
+      .header {
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .header h1 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .version-badge {
+        background: var(--color-primary);
+        color: white;
+        padding: 0.125rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      /* Controls */
+      .controls {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+      }
+
+      .btn:hover {
+        background: var(--color-border);
+      }
+
+      .btn.primary {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+      }
+
+      .btn.primary:hover {
+        background: #2563eb;
+      }
+
+      .btn.success {
+        background: var(--color-success);
+        border-color: var(--color-success);
+      }
+
+      .btn.warning {
+        background: var(--color-warning);
+        border-color: var(--color-warning);
+        color: #000;
+      }
+
+      .btn.danger {
+        background: var(--color-error);
+        border-color: var(--color-error);
+      }
+
+      /* Main Layout */
+      .main {
+        display: flex;
+        height: calc(100vh - 65px);
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 280px;
+        background: var(--color-surface);
+        border-right: 1px solid var(--color-border);
+        overflow-y: auto;
+        padding: 1rem;
+        flex-shrink: 0;
+      }
+
+      .sidebar-section {
+        margin-bottom: 1.5rem;
+      }
+
+      .sidebar-section h3 {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-secondary);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .option-group {
+        margin-bottom: 1rem;
+      }
+
+      .option-group label {
+        display: block;
+        font-size: 0.813rem;
+        color: var(--color-text-secondary);
+        margin-bottom: 0.375rem;
+      }
+
+      .option-group input[type="number"],
+      .option-group select {
+        width: 100%;
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        padding: 0.5rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+      }
+
+      .option-group input[type="checkbox"] {
+        margin-right: 0.5rem;
+      }
+
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        font-size: 0.875rem;
+        cursor: pointer;
+        padding: 0.375rem 0;
+      }
+
+      .checkbox-label:hover {
+        color: var(--color-primary);
+      }
+
+      /* Dashboard Container */
+      .dashboard-wrapper {
+        flex: 1;
+        overflow: auto;
+        padding: 1rem;
+      }
+
+      .dashboard-container {
+        min-height: 800px;
+        background: var(--color-bg);
+        border-radius: var(--radius);
+      }
+
+      /* Custom widget styles */
+      .widget-header {
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .widget-icon {
+        font-size: 1rem;
+      }
+
+      .widget-body {
+        font-size: 0.813rem;
+        color: var(--color-text-secondary);
+        line-height: 1.5;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        line-height: 1.2;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      /* Feature badges */
+      .feature-tag {
+        display: inline-block;
+        background: var(--color-primary);
+        color: white;
+        padding: 0.125rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .feature-tag.new {
+        background: var(--color-success);
+      }
+
+      /* Event Log */
+      .event-log {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        padding: 0.5rem;
+        max-height: 200px;
+        overflow-y: auto;
+        font-family: 'SF Mono', Monaco, monospace;
+        font-size: 0.75rem;
+      }
+
+      .event-item {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin-bottom: 0.25rem;
+        background: var(--color-surface);
+      }
+
+      .event-item .time {
+        color: var(--color-text-secondary);
+        margin-right: 0.5rem;
+      }
+
+      .event-item .type {
+        color: var(--color-primary);
+        font-weight: 500;
+      }
+
+      /* Theme override for dashboard */
+      .dashboard-container .iazd-grid {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-radius: var(--radius);
+      }
+
+      .dashboard-container .iazd-widget {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+      }
+
+      .dashboard-container .iazd-widget:hover {
+        border-color: var(--color-primary);
+      }
+
+      /* Sub-grid styling */
+      .dashboard-container .iazd-subgrid-container .iazd-grid {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px dashed var(--color-primary);
+        border-radius: 6px;
+      }
+
+      .dashboard-container .iazd-subgrid-container .iazd-widget {
+        background: rgba(59, 130, 246, 0.2);
+        border: 1px solid var(--color-primary);
+      }
+
+      /* Size to content indicator */
+      .size-to-content-demo {
+        transition: all 0.3s ease;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .main {
+          flex-direction: column;
+          height: auto;
+        }
+
+        .sidebar {
+          width: 100%;
+          max-height: 300px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <h1>
+        IAZ Dashboard
+        <span class="version-badge">v1.5.0</span>
+      </h1>
+      <div class="controls">
+        <button class="btn primary" onclick="addWidget()">+ Add Widget</button>
+        <button class="btn success" onclick="addSubGridWidget()">+ Nested Grid</button>
+        <button class="btn warning" onclick="addSizeToContentWidget()">+ Auto-Height</button>
+        <button class="btn" onclick="toggleEditMode()">Toggle Edit</button>
+        <button class="btn danger" onclick="clearAll()">Clear All</button>
+      </div>
+    </header>
+
+    <div class="main">
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <h3>Grid Options</h3>
+          <div class="option-group">
+            <label>Columns</label>
+            <input type="number" id="columns" value="12" min="1" max="24" onchange="updateOption('columns', this.value)" />
+          </div>
+          <div class="option-group">
+            <label>Row Height (px)</label>
+            <input type="number" id="rowHeight" value="60" min="10" max="200" onchange="updateOption('rowHeight', this.value)" />
+          </div>
+          <div class="option-group">
+            <label>Margin (px)</label>
+            <input type="number" id="margin" value="8" min="0" max="50" onchange="updateOption('margin', this.value)" />
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>Interaction</h3>
+          <label class="checkbox-label">
+            <input type="checkbox" id="draggable" checked onchange="updateOption('draggable', this.checked)" />
+            Enable Dragging
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="resizable" checked onchange="updateOption('resizable', this.checked)" />
+            Enable Resizing
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="animate" checked onchange="updateOption('animate', this.checked)" />
+            Animations
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="floatMode" onchange="updateOption('floatMode', this.checked)" />
+            Float Mode (Compact)
+          </label>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>Resize Handles <span class="feature-tag new">v1.5</span></h3>
+          <div class="option-group">
+            <label>Active Handles</label>
+            <select id="resizeHandles" onchange="updateResizeHandles()">
+              <option value="all">All 8 Handles</option>
+              <option value="corners">Corners Only (nw, ne, sw, se)</option>
+              <option value="edges">Edges Only (n, s, e, w)</option>
+              <option value="se-only">Bottom-Right Only (se)</option>
+              <option value="bottom-right">Bottom + Right (s, e, se)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>New Features <span class="feature-tag new">v1.5</span></h3>
+          <label class="checkbox-label">
+            <input type="checkbox" id="sizeToContent" onchange="updateOption('sizeToContent', this.checked)" />
+            Size-to-Content (Global)
+          </label>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>Event Log</h3>
+          <div class="event-log" id="eventLog">
+            <div class="event-item">
+              <span class="time">--:--:--</span>
+              <span class="type">Ready</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>State</h3>
+          <button class="btn" style="width: 100%; margin-bottom: 0.5rem;" onclick="saveState()">Save to LocalStorage</button>
+          <button class="btn" style="width: 100%; margin-bottom: 0.5rem;" onclick="loadState()">Load from LocalStorage</button>
+          <button class="btn" style="width: 100%;" onclick="exportState()">Export JSON</button>
+        </div>
+      </aside>
+
+      <div class="dashboard-wrapper">
+        <div id="dashboard" class="dashboard-container"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { IAZDashboard } from '../src/index.ts';
+
+      let widgetCounter = 10;
+      let editMode = true;
+
+      // Create dashboard with all features
+      const dashboard = new IAZDashboard('#dashboard', {
+        columns: 12,
+        rowHeight: 60,
+        margin: 8,
+        draggable: true,
+        resizable: true,
+        animate: true,
+        floatMode: false,
+        resizeHandles: ['nw', 'n', 'ne', 'w', 'e', 'sw', 's', 'se'],
+        debug: true,
+        widgets: [
+          // Regular widgets
+          {
+            id: 1,
+            x: 0,
+            y: 0,
+            w: 4,
+            h: 3,
+            content: `
+              <div class="widget-header"><span class="widget-icon">📊</span> Statistics</div>
+              <div class="stat-value">1,234</div>
+              <div class="stat-label">Active Users</div>
+            `,
+          },
+          {
+            id: 2,
+            x: 4,
+            y: 0,
+            w: 4,
+            h: 3,
+            content: `
+              <div class="widget-header"><span class="widget-icon">💰</span> Revenue</div>
+              <div class="stat-value">$52.4K</div>
+              <div class="stat-label">This Month</div>
+            `,
+          },
+          {
+            id: 3,
+            x: 8,
+            y: 0,
+            w: 4,
+            h: 3,
+            content: `
+              <div class="widget-header"><span class="widget-icon">📈</span> Growth</div>
+              <div class="stat-value">+24%</div>
+              <div class="stat-label">vs Last Month</div>
+            `,
+          },
+          // Large widget
+          {
+            id: 4,
+            x: 0,
+            y: 3,
+            w: 8,
+            h: 4,
+            content: `
+              <div class="widget-header"><span class="widget-icon">🎯</span> Main Chart Area</div>
+              <div class="widget-body">
+                This is a large widget that spans 8 columns and 4 rows.
+                <br><br>
+                Drag the handles to resize, or drag the widget to move it.
+                All 8 resize handles are available (corners + edges).
+              </div>
+            `,
+          },
+          // Locked widget
+          {
+            id: 5,
+            x: 8,
+            y: 3,
+            w: 4,
+            h: 2,
+            locked: true,
+            content: `
+              <div class="widget-header"><span class="widget-icon">🔒</span> Locked Widget</div>
+              <div class="widget-body">This widget cannot be moved or resized.</div>
+            `,
+          },
+          // No resize widget
+          {
+            id: 6,
+            x: 8,
+            y: 5,
+            w: 4,
+            h: 2,
+            noResize: true,
+            content: `
+              <div class="widget-header"><span class="widget-icon">↔️</span> No Resize</div>
+              <div class="widget-body">Can be moved but not resized.</div>
+            `,
+          },
+          // Size-to-content demo widget
+          {
+            id: 7,
+            x: 0,
+            y: 7,
+            w: 6,
+            h: 2,
+            sizeToContent: true,
+            content: `
+              <div class="widget-header">
+                <span class="widget-icon">📏</span> Size-to-Content
+                <span class="feature-tag new">v1.5</span>
+              </div>
+              <div class="widget-body size-to-content-demo">
+                This widget automatically adjusts its height based on content.
+                <br><br>
+                <button onclick="expandContent(this)" class="btn" style="margin-top: 0.5rem;">Add More Content</button>
+              </div>
+            `,
+          },
+          // Nested grid widget
+          {
+            id: 8,
+            x: 6,
+            y: 7,
+            w: 6,
+            h: 5,
+            subGrid: {
+              columns: 4,
+              rowHeight: 40,
+              margin: 4,
+              widgets: [
+                { id: 'sub-1', x: 0, y: 0, w: 2, h: 2, content: '<div class="widget-header">Sub 1</div>' },
+                { id: 'sub-2', x: 2, y: 0, w: 2, h: 2, content: '<div class="widget-header">Sub 2</div>' },
+                { id: 'sub-3', x: 0, y: 2, w: 4, h: 2, content: '<div class="widget-header">Sub 3 (Full Width)</div>' },
+              ],
+            },
+            content: `
+              <div class="widget-header">
+                <span class="widget-icon">🪆</span> Nested Grid
+                <span class="feature-tag new">v1.5</span>
+              </div>
+            `,
+          },
+        ],
+      });
+
+      // Expose dashboard globally
+      window.dashboard = dashboard;
+
+      // Event logging
+      const events = [
+        'widget:add', 'widget:remove', 'widget:move', 'widget:resize', 'widget:update',
+        'drag:start', 'drag:end', 'resize:start', 'resize:end',
+        'layout:change', 'subgrid:widget:add', 'subgrid:widget:move'
+      ];
+
+      events.forEach(event => {
+        dashboard.on(event, (...args) => {
+          logEvent(event, args);
+        });
+      });
+
+      function logEvent(type, args) {
+        const log = document.getElementById('eventLog');
+        const time = new Date().toLocaleTimeString();
+        const item = document.createElement('div');
+        item.className = 'event-item';
+        item.innerHTML = `<span class="time">${time}</span><span class="type">${type}</span>`;
+        log.insertBefore(item, log.firstChild);
+
+        // Keep only last 50 events
+        while (log.children.length > 50) {
+          log.removeChild(log.lastChild);
+        }
+      }
+
+      // Global functions
+      window.addWidget = function() {
+        const id = ++widgetCounter;
+        dashboard.addWidget({
+          id,
+          w: 4,
+          h: 3,
+          content: `
+            <div class="widget-header"><span class="widget-icon">✨</span> Widget ${id}</div>
+            <div class="widget-body">Newly added widget with auto-positioning.</div>
+          `,
+        });
+      };
+
+      window.addSubGridWidget = function() {
+        const id = ++widgetCounter;
+        dashboard.addWidget({
+          id,
+          w: 6,
+          h: 4,
+          subGrid: {
+            columns: 3,
+            rowHeight: 35,
+            margin: 4,
+            widgets: [
+              { id: `${id}-sub-1`, x: 0, y: 0, w: 1, h: 2, content: '<div style="text-align:center">A</div>' },
+              { id: `${id}-sub-2`, x: 1, y: 0, w: 1, h: 2, content: '<div style="text-align:center">B</div>' },
+              { id: `${id}-sub-3`, x: 2, y: 0, w: 1, h: 2, content: '<div style="text-align:center">C</div>' },
+            ],
+          },
+          content: `<div class="widget-header"><span class="widget-icon">🪆</span> Nested ${id}</div>`,
+        });
+      };
+
+      window.addSizeToContentWidget = function() {
+        const id = ++widgetCounter;
+        const paragraphs = Math.floor(Math.random() * 3) + 1;
+        let content = `<div class="widget-header"><span class="widget-icon">📏</span> Auto ${id}</div>`;
+        content += '<div class="widget-body">';
+        for (let i = 0; i < paragraphs; i++) {
+          content += '<p style="margin-bottom: 0.5rem;">This widget has auto-height based on content. It will expand or shrink as needed.</p>';
+        }
+        content += '</div>';
+
+        dashboard.addWidget({
+          id,
+          w: 4,
+          h: 2,
+          sizeToContent: true,
+          content,
+        });
+      };
+
+      window.expandContent = function(btn) {
+        const body = btn.parentElement;
+        const p = document.createElement('p');
+        p.style.marginTop = '0.5rem';
+        p.textContent = 'Additional content added! The widget height adjusts automatically thanks to ResizeObserver.';
+        body.insertBefore(p, btn);
+      };
+
+      window.toggleEditMode = function() {
+        editMode = !editMode;
+        dashboard.setDraggable(editMode);
+        dashboard.setResizable(editMode);
+        logEvent(editMode ? 'edit:enabled' : 'edit:disabled', []);
+      };
+
+      window.clearAll = function() {
+        if (confirm('Clear all widgets?')) {
+          dashboard.clear();
+        }
+      };
+
+      window.updateOption = function(key, value) {
+        const numericKeys = ['columns', 'rowHeight', 'margin'];
+        const booleanKeys = ['draggable', 'resizable', 'animate', 'floatMode', 'sizeToContent'];
+
+        if (numericKeys.includes(key)) {
+          value = parseInt(value);
+        } else if (booleanKeys.includes(key)) {
+          value = Boolean(value);
+        }
+
+        dashboard.updateOptions({ [key]: value });
+        logEvent('options:update', [{ [key]: value }]);
+      };
+
+      window.updateResizeHandles = function() {
+        const select = document.getElementById('resizeHandles');
+        const handleSets = {
+          'all': ['nw', 'n', 'ne', 'w', 'e', 'sw', 's', 'se'],
+          'corners': ['nw', 'ne', 'sw', 'se'],
+          'edges': ['n', 's', 'e', 'w'],
+          'se-only': ['se'],
+          'bottom-right': ['s', 'e', 'se'],
+        };
+
+        const handles = handleSets[select.value];
+        dashboard.updateOptions({ resizeHandles: handles });
+        logEvent('resizeHandles:update', [handles]);
+      };
+
+      window.saveState = function() {
+        const state = dashboard.serialize();
+        localStorage.setItem('iaz-dashboard-demo', state);
+        logEvent('state:saved', []);
+        alert('State saved to localStorage!');
+      };
+
+      window.loadState = function() {
+        const state = localStorage.getItem('iaz-dashboard-demo');
+        if (state) {
+          dashboard.load(state);
+          logEvent('state:loaded', []);
+        } else {
+          alert('No saved state found.');
+        }
+      };
+
+      window.exportState = function() {
+        const state = dashboard.serialize();
+        const blob = new Blob([state], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'dashboard-state.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        logEvent('state:exported', []);
+      };
+
+      // Log ready
+      logEvent('dashboard:ready', []);
+    </script>
+  </body>
+</html>
