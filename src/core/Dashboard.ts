@@ -704,9 +704,44 @@ export class IAZDashboard extends EventEmitter {
     const draggableChanged = 'draggable' in newOptions && newOptions.draggable !== this.options.draggable;
     const resizableChanged = 'resizable' in newOptions && newOptions.resizable !== this.options.resizable;
     const animateChanged = 'animate' in newOptions && newOptions.animate !== this.options.animate;
+    const columnsChanged = 'columns' in newOptions && newOptions.columns !== this.state.columns;
+    const rowHeightChanged = 'rowHeight' in newOptions && newOptions.rowHeight !== this.state.rowHeight;
+    const marginChanged = 'margin' in newOptions && newOptions.margin !== this.options.margin;
 
     // Update options
     Object.assign(this.options, newOptions);
+
+    // Update state for grid dimensions
+    if (columnsChanged && newOptions.columns !== undefined) {
+      this.state.columns = newOptions.columns;
+    }
+    if (rowHeightChanged && newOptions.rowHeight !== undefined) {
+      this.state.rowHeight = newOptions.rowHeight;
+    }
+    if (marginChanged && newOptions.margin !== undefined) {
+      this.state.margin = newOptions.margin;
+    }
+
+    // Update CSS variables on grid element
+    if ((columnsChanged || rowHeightChanged || marginChanged) && this.gridElement) {
+      this.gridElement.style.setProperty('--iazd-columns', String(this.state.columns));
+      this.gridElement.style.setProperty('--iazd-row-height', String(this.state.rowHeight));
+      this.gridElement.style.setProperty('--iazd-margin', String(this.options.margin));
+    }
+
+    // Update drag and resize engine options
+    if ((columnsChanged || rowHeightChanged || marginChanged)) {
+      if (this.dragEngine) {
+        (this.dragEngine as any).options.columns = this.state.columns;
+        (this.dragEngine as any).options.rowHeight = this.state.rowHeight;
+        (this.dragEngine as any).options.margin = this.options.margin;
+      }
+      if (this.resizeEngine) {
+        (this.resizeEngine as any).options.columns = this.state.columns;
+        (this.resizeEngine as any).options.rowHeight = this.state.rowHeight;
+        (this.resizeEngine as any).options.margin = this.options.margin;
+      }
+    }
 
     // Force full re-render if interaction options changed
     // This ensures event listeners are properly attached/detached
