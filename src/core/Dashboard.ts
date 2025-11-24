@@ -676,10 +676,34 @@ export class IAZDashboard extends EventEmitter {
    * Update dashboard options dynamically
    */
   public updateOptions(newOptions: Partial<DashboardOptions>): this {
+    // Check if interaction options are changing
+    const draggableChanged = 'draggable' in newOptions && newOptions.draggable !== this.options.draggable;
+    const resizableChanged = 'resizable' in newOptions && newOptions.resizable !== this.options.resizable;
+    const animateChanged = 'animate' in newOptions && newOptions.animate !== this.options.animate;
+
     // Update options
     Object.assign(this.options, newOptions);
 
-    // Re-render to apply changes (especially for draggable/resizable)
+    // Force full re-render if interaction options changed
+    // This ensures event listeners are properly attached/detached
+    if (draggableChanged || resizableChanged) {
+      this.widgetElements.clear();
+      if (this.gridElement) {
+        this.gridElement.innerHTML = '';
+      }
+      this.log('Forcing full re-render due to interaction option changes');
+    }
+
+    // Handle animate class
+    if (animateChanged && this.gridElement) {
+      if (this.options.animate) {
+        this.gridElement.classList.add('iazd-animate');
+      } else {
+        this.gridElement.classList.remove('iazd-animate');
+      }
+    }
+
+    // Re-render to apply changes
     this.render();
 
     this.emit('options:update', newOptions);

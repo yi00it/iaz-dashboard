@@ -425,6 +425,60 @@ describe('Dashboard', () => {
       const result = dashboard.addWidget({ id: '1', x: 0, y: 0, w: 24, h: 3, content: 'Full width' });
       expect(result).toBeTruthy();
     });
+
+    it('should update options dynamically with updateOptions()', () => {
+      dashboard = new Dashboard(container, { animate: false });
+      const gridElement = container.querySelector('.iazd-grid');
+
+      expect(gridElement?.classList.contains('iazd-animate')).toBe(false);
+
+      dashboard.updateOptions({ animate: true });
+
+      expect(gridElement?.classList.contains('iazd-animate')).toBe(true);
+    });
+
+    it('should force full re-render when draggable option changes', () => {
+      dashboard = new Dashboard(container, { draggable: false });
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
+
+      const widgetBefore = container.querySelector('[data-widget-id="1"]');
+      expect(widgetBefore?.getAttribute('data-draggable')).toBeNull();
+
+      // Enable dragging - should force full re-render
+      dashboard.setDraggable(true);
+
+      const widgetAfter = container.querySelector('[data-widget-id="1"]');
+      // Widget should be recreated with draggable attribute
+      expect(widgetAfter?.getAttribute('data-draggable')).toBe('true');
+      expect(widgetAfter?.style.cursor).toBe('move');
+    });
+
+    it('should force full re-render when resizable option changes', () => {
+      dashboard = new Dashboard(container, { resizable: false });
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
+
+      const widgetBefore = container.querySelector('[data-widget-id="1"]');
+      const handlesBefore = widgetBefore?.querySelectorAll('.iazd-resize-handle');
+      expect(handlesBefore?.length).toBe(0);
+
+      // Enable resizing - should force full re-render
+      dashboard.setResizable(true);
+
+      const widgetAfter = container.querySelector('[data-widget-id="1"]');
+      const handlesAfter = widgetAfter?.querySelectorAll('.iazd-resize-handle');
+      // Widget should now have resize handles
+      expect(handlesAfter?.length).toBeGreaterThan(0);
+    });
+
+    it('should emit options:update event when options change', () => {
+      dashboard = new Dashboard(container);
+      const handler = vi.fn();
+      dashboard.on('options:update', handler);
+
+      dashboard.updateOptions({ animate: false });
+
+      expect(handler).toHaveBeenCalledWith({ animate: false });
+    });
   });
 
   describe('locked and immutable widgets', () => {

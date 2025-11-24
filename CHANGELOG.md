@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2025-11-24
+
+### Fixed
+- **Event listeners not reattached**: Fixed incremental rendering bug where `setDraggable(true)` and `setResizable(true)` didn't work after initial load
+- `updateOptions()` now forces full re-render when `draggable` or `resizable` options change
+- This ensures event listeners are properly attached/detached when interaction options are toggled
+- Added proper handling for `animate` option changes in `updateOptions()`
+
+### Technical Details
+The v1.4.0 incremental rendering optimization preserved DOM elements for performance, but this prevented event listeners from being reattached when options changed. Now when `draggable` or `resizable` options are modified, the dashboard forces a full re-render to ensure all event listeners are properly updated.
+
 ## [1.4.0] - 2025-11-24
 
 ### Added
