@@ -340,6 +340,126 @@ describe('BreakpointManager', () => {
     });
   });
 
+  describe('getBreakpointNames', () => {
+    it('should return all breakpoint names', () => {
+      const names = breakpointManager.getBreakpointNames();
+
+      expect(names).toContain('sm');
+      expect(names).toContain('md');
+      expect(names).toContain('lg');
+      expect(names).toContain('xl');
+      expect(names).toHaveLength(4);
+    });
+  });
+
+  describe('getBreakpointConfig', () => {
+    it('should return config for valid breakpoint', () => {
+      const config = breakpointManager.getBreakpointConfig('lg');
+
+      expect(config).toEqual({ width: 992, columns: 12 });
+    });
+
+    it('should return null for invalid breakpoint', () => {
+      const config = breakpointManager.getBreakpointConfig('invalid');
+
+      expect(config).toBeNull();
+    });
+  });
+
+  describe('getCurrentBreakpointName', () => {
+    it('should return null when no breakpoint is active', () => {
+      const name = breakpointManager.getCurrentBreakpointName();
+
+      expect(name).toBeNull();
+    });
+
+    it('should return current breakpoint name after switching', () => {
+      breakpointManager.switchToBreakpoint('md');
+
+      const name = breakpointManager.getCurrentBreakpointName();
+
+      expect(name).toBe('md');
+    });
+  });
+
+  describe('hasBreakpoint', () => {
+    it('should return true for existing breakpoint', () => {
+      expect(breakpointManager.hasBreakpoint('lg')).toBe(true);
+      expect(breakpointManager.hasBreakpoint('sm')).toBe(true);
+    });
+
+    it('should return false for non-existing breakpoint', () => {
+      expect(breakpointManager.hasBreakpoint('invalid')).toBe(false);
+      expect(breakpointManager.hasBreakpoint('')).toBe(false);
+    });
+  });
+
+  describe('updateBreakpoint', () => {
+    it('should update existing breakpoint config', () => {
+      const result = breakpointManager.updateBreakpoint('md', { columns: 10 });
+
+      expect(result).toBe(true);
+      expect(breakpointManager.getBreakpointConfig('md')?.columns).toBe(10);
+    });
+
+    it('should return false for non-existing breakpoint', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = breakpointManager.updateBreakpoint('invalid', { columns: 10 });
+
+      expect(result).toBe(false);
+
+      warnSpy.mockRestore();
+    });
+
+    it('should merge config with existing values', () => {
+      breakpointManager.updateBreakpoint('lg', { columns: 16 });
+
+      const config = breakpointManager.getBreakpointConfig('lg');
+
+      expect(config?.width).toBe(992); // Original value preserved
+      expect(config?.columns).toBe(16); // Updated value
+    });
+  });
+
+  describe('debug logging', () => {
+    it('should log messages when debug is enabled', () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const debugManager = new BreakpointManager(
+        breakpoints,
+        getCurrentLayout,
+        onBreakpointChange,
+        true // debug enabled
+      );
+
+      debugManager.switchToBreakpoint('lg');
+      debugManager.updateBreakpoint('invalid', { columns: 5 });
+
+      expect(logSpy).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
+
+      debugManager.destroy();
+      logSpy.mockRestore();
+      warnSpy.mockRestore();
+    });
+
+    it('should not log when debug is disabled', () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      breakpointManager.switchToBreakpoint('lg');
+
+      // Should not have been called with BreakpointManager messages
+      const bpCalls = logSpy.mock.calls.filter((call) =>
+        String(call[0]).includes('[BreakpointManager]')
+      );
+      expect(bpCalls).toHaveLength(0);
+
+      logSpy.mockRestore();
+    });
+  });
+
   describe('breakpoint sorting', () => {
     it('should sort breakpoints by width on init', () => {
       const unsortedBreakpoints: BreakpointLayouts = {

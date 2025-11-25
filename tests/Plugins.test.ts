@@ -158,6 +158,141 @@ describe('Plugins', () => {
         expect(errorHandler).toHaveBeenCalled();
       });
 
+      it('should handle save errors gracefully', async () => {
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        // Create a mock storage that throws on setItem
+        const mockStorage = {
+          getItem: vi.fn(() => null),
+          setItem: vi.fn(() => {
+            throw new Error('QuotaExceededError');
+          }),
+          removeItem: vi.fn(),
+          clear: vi.fn(),
+          length: 0,
+          key: vi.fn(),
+        };
+
+        vi.stubGlobal('localStorage', mockStorage);
+
+        dashboard = new Dashboard(container);
+        const errorHandler = vi.fn();
+        dashboard.on('save:error', errorHandler);
+
+        dashboard.use(
+          createSavePlugin({
+            storageKey: 'test-dashboard',
+            debounce: 50,
+            autoLoad: false,
+          })
+        );
+
+        dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
+
+        // Wait for debounce
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        expect(errorHandler).toHaveBeenCalled();
+        expect(errorSpy).toHaveBeenCalledWith(
+          '[SavePlugin] Failed to save state:',
+          expect.any(Error)
+        );
+
+        vi.unstubAllGlobals();
+        errorSpy.mockRestore();
+      });
+
+      it('should handle clear errors gracefully', () => {
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        dashboard = new Dashboard(container);
+        const errorHandler = vi.fn();
+        dashboard.on('clear:error', errorHandler);
+
+        dashboard.use(
+          createSavePlugin({
+            storageKey: 'test-dashboard',
+            autoLoad: false,
+            autoSave: false,
+          })
+        );
+
+        // Create a mock storage that throws on removeItem
+        const mockStorage = {
+          getItem: vi.fn(() => null),
+          setItem: vi.fn(),
+          removeItem: vi.fn(() => {
+            throw new Error('Storage error');
+          }),
+          clear: vi.fn(),
+          length: 0,
+          key: vi.fn(),
+        };
+
+        vi.stubGlobal('localStorage', mockStorage);
+
+        dashboard.clearSavedState?.();
+
+        expect(errorHandler).toHaveBeenCalled();
+        expect(errorSpy).toHaveBeenCalledWith(
+          '[SavePlugin] Failed to clear state:',
+          expect.any(Error)
+        );
+
+        vi.unstubAllGlobals();
+        errorSpy.mockRestore();
+      });
+
+      it('should debounce multiple rapid saves', async () => {
+        dashboard = new Dashboard(container);
+        const successHandler = vi.fn();
+        dashboard.on('save:success', successHandler);
+
+        dashboard.use(
+          createSavePlugin({
+            storageKey: 'test-dashboard',
+            debounce: 100,
+            autoLoad: false,
+          })
+        );
+
+        // Rapid widget additions
+        dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
+        dashboard.addWidget({ id: '2', x: 4, y: 0, w: 4, h: 3, content: 'Widget 2' });
+        dashboard.addWidget({ id: '3', x: 0, y: 3, w: 4, h: 3, content: 'Widget 3' });
+
+        // Wait for debounce
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        // Should only save once due to debouncing
+        expect(successHandler).toHaveBeenCalledTimes(1);
+
+        // Saved state should have all widgets
+        const saved = JSON.parse(localStorage.getItem('test-dashboard')!);
+        expect(saved.widgets).toHaveLength(3);
+      });
+
+      it('should emit clear:success event', () => {
+        localStorage.setItem('test-dashboard', JSON.stringify({ widgets: [] }));
+
+        dashboard = new Dashboard(container);
+        const successHandler = vi.fn();
+        dashboard.on('clear:success', successHandler);
+
+        dashboard.use(
+          createSavePlugin({
+            storageKey: 'test-dashboard',
+            autoLoad: false,
+          })
+        );
+
+        dashboard.clearSavedState?.();
+
+        expect(successHandler).toHaveBeenCalledWith({
+          storageKey: 'test-dashboard',
+        });
+      });
+
       it('should add helper methods to dashboard', () => {
         dashboard = new Dashboard(container);
         dashboard.use(

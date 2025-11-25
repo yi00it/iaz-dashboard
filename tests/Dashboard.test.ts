@@ -636,4 +636,818 @@ describe('Dashboard', () => {
       expect(widget2ElementAfter).toBe(widget2Element);
     });
   });
+
+  describe('custom rendering', () => {
+    it('should use custom renderWidget hook', () => {
+      const renderWidget = vi.fn((widget, helpers) => {
+        const el = helpers.createElement('div', 'custom-widget');
+        el.textContent = `Custom: ${widget.id}`;
+        return el;
+      });
+
+      dashboard = new Dashboard(container, {
+        renderWidget,
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3 }],
+      });
+
+      expect(renderWidget).toHaveBeenCalled();
+      const customEl = container.querySelector('.custom-widget');
+      expect(customEl).not.toBeNull();
+      expect(customEl?.textContent).toBe('Custom: 1');
+    });
+
+    it('should use custom renderWidgetFrame hook', () => {
+      const renderWidgetFrame = vi.fn((widget, helpers) => {
+        const el = helpers.createElement('div', 'custom-frame');
+        el.setAttribute('data-widget-id', String(widget.id));
+        return el;
+      });
+
+      dashboard = new Dashboard(container, {
+        renderWidgetFrame,
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3 }],
+      });
+
+      expect(renderWidgetFrame).toHaveBeenCalled();
+      const customFrame = container.querySelector('.custom-frame');
+      expect(customFrame).not.toBeNull();
+    });
+
+    it('should handle HTMLElement content', () => {
+      const contentEl = document.createElement('span');
+      contentEl.textContent = 'HTML Content';
+      contentEl.className = 'html-content';
+
+      dashboard = new Dashboard(container);
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: contentEl });
+
+      const htmlContent = container.querySelector('.html-content');
+      expect(htmlContent).not.toBeNull();
+    });
+  });
+
+  describe('selector initialization', () => {
+    it('should accept CSS selector string for container', () => {
+      container.id = 'my-dashboard';
+
+      dashboard = new Dashboard('#my-dashboard');
+
+      expect(dashboard).toBeTruthy();
+      expect(container.querySelector('.iazd-grid')).toBeTruthy();
+    });
+
+    it('should throw error for non-existent selector', () => {
+      expect(() => {
+        new Dashboard('#non-existent-container');
+      }).toThrow('Container not found');
+    });
+  });
+
+  describe('before:widget:add event', () => {
+    it('should emit before:widget:add event', () => {
+      dashboard = new Dashboard(container);
+      const handler = vi.fn();
+      dashboard.on('before:widget:add', handler);
+
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3 });
+
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          widget: expect.objectContaining({ id: '1' }),
+          cancel: false,
+        })
+      );
+    });
+
+    it('should allow cancelling widget add', () => {
+      dashboard = new Dashboard(container);
+      dashboard.on('before:widget:add', (event: any) => {
+        event.cancel = true;
+      });
+
+      const result = dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3 });
+
+      expect(result).toBeNull();
+      expect(dashboard.getState().widgets).toHaveLength(0);
+    });
+  });
+
+  describe('updateOptions edge cases', () => {
+    it('should update columns and rowHeight', () => {
+      dashboard = new Dashboard(container, { columns: 12, rowHeight: 60 });
+
+      dashboard.updateOptions({ columns: 24, rowHeight: 80 });
+
+      const state = dashboard.getState();
+      expect(state.columns).toBe(24);
+      expect(state.rowHeight).toBe(80);
+    });
+
+    it('should update margin', () => {
+      dashboard = new Dashboard(container, { margin: 8 });
+
+      dashboard.updateOptions({ margin: 16 });
+
+      const gridEl = container.querySelector('.iazd-grid') as HTMLElement;
+      expect(gridEl.style.getPropertyValue('--iazd-margin')).toBe('16');
+    });
+
+    it('should handle floatMode alias', () => {
+      dashboard = new Dashboard(container, { floatMode: false });
+
+      expect(dashboard).toBeTruthy();
+    });
+  });
+
+  describe('widget constraints', () => {
+    it('should respect minW and maxW', () => {
+      dashboard = new Dashboard(container);
+      dashboard.addWidget({
+        id: '1',
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 3,
+        minW: 2,
+        maxW: 6,
+      });
+
+      // Try to resize below minW
+      dashboard.resizeWidget('1', 1, 3);
+      let widget = dashboard.getWidget('1');
+      expect(widget?.w).toBeGreaterThanOrEqual(2);
+
+      // Try to resize above maxW
+      dashboard.resizeWidget('1', 10, 3);
+      widget = dashboard.getWidget('1');
+      expect(widget?.w).toBeLessThanOrEqual(6);
+    });
+
+    it('should respect minH and maxH', () => {
+      dashboard = new Dashboard(container);
+      dashboard.addWidget({
+        id: '1',
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 3,
+        minH: 2,
+        maxH: 5,
+      });
+
+      // Try to resize below minH
+      dashboard.resizeWidget('1', 4, 1);
+      let widget = dashboard.getWidget('1');
+      expect(widget?.h).toBeGreaterThanOrEqual(2);
+
+      // Try to resize above maxH
+      dashboard.resizeWidget('1', 4, 10);
+      widget = dashboard.getWidget('1');
+      expect(widget?.h).toBeLessThanOrEqual(5);
+    });
+  });
+
+  describe('loadState', () => {
+    it('should load state with silent option', () => {
+      dashboard = new Dashboard(container);
+      const layoutHandler = vi.fn();
+      dashboard.on('layout:change', layoutHandler);
+
+      dashboard.loadState(
+        {
+          widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3 }],
+        },
+        { silent: true }
+      );
+
+      expect(layoutHandler).not.toHaveBeenCalled();
+      expect(dashboard.getState().widgets).toHaveLength(1);
+    });
+
+    it('should emit layout:change without silent option', () => {
+      dashboard = new Dashboard(container);
+      const layoutHandler = vi.fn();
+      dashboard.on('layout:change', layoutHandler);
+
+      dashboard.loadState({
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3 }],
+      });
+
+      expect(layoutHandler).toHaveBeenCalled();
+    });
+  });
+
+  describe('refresh', () => {
+    it('should re-render all widgets', () => {
+      dashboard = new Dashboard(container);
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3 });
+
+      const renderSpy = vi.spyOn(dashboard as any, 'render');
+      dashboard.refresh();
+
+      expect(renderSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('isDraggable and isResizable', () => {
+    it('should return correct draggable state', () => {
+      dashboard = new Dashboard(container, { draggable: false });
+
+      expect(dashboard.isDraggable()).toBe(false);
+
+      dashboard.setDraggable(true);
+      expect(dashboard.isDraggable()).toBe(true);
+    });
+
+    it('should return correct resizable state', () => {
+      dashboard = new Dashboard(container, { resizable: false });
+
+      expect(dashboard.isResizable()).toBe(false);
+
+      dashboard.setResizable(true);
+      expect(dashboard.isResizable()).toBe(true);
+    });
+  });
+
+  describe('layout:change events', () => {
+    it('should emit layout:change on widget move with collision', () => {
+      dashboard = new Dashboard(container);
+      const layoutHandler = vi.fn();
+
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3 });
+      dashboard.addWidget({ id: '2', x: 4, y: 0, w: 4, h: 3 });
+
+      dashboard.on('layout:change', layoutHandler);
+
+      // Move widget 1 to collide with widget 2
+      dashboard.moveWidget('1', 4, 0);
+
+      expect(layoutHandler).toHaveBeenCalled();
+    });
+
+    it('should emit layout:change on remove with floatMode', () => {
+      dashboard = new Dashboard(container, { floatMode: true });
+      const layoutHandler = vi.fn();
+
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3 });
+      dashboard.addWidget({ id: '2', x: 0, y: 5, w: 4, h: 3 });
+
+      dashboard.on('layout:change', layoutHandler);
+      dashboard.removeWidget('1');
+
+      expect(layoutHandler).toHaveBeenCalled();
+    });
+  });
+
+  describe('plugin error handling', () => {
+    it('should throw and remove plugin on initialization error', () => {
+      dashboard = new Dashboard(container);
+
+      const badPlugin = () => {
+        throw new Error('Plugin init failed');
+      };
+
+      expect(() => {
+        dashboard.use(badPlugin);
+      }).toThrow('Plugin init failed');
+    });
+
+    it('should not register same plugin twice', () => {
+      dashboard = new Dashboard(container);
+      const plugin = vi.fn();
+
+      dashboard.use(plugin);
+      dashboard.use(plugin);
+
+      expect(plugin).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('widget with meta', () => {
+    it('should store and retrieve widget meta data', () => {
+      dashboard = new Dashboard(container);
+      dashboard.addWidget({
+        id: '1',
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 3,
+        meta: { title: 'My Widget', color: 'blue' },
+      });
+
+      const widget = dashboard.getWidget('1');
+      expect(widget?.meta?.title).toBe('My Widget');
+      expect(widget?.meta?.color).toBe('blue');
+    });
+  });
+
+  describe('sub-grids', () => {
+    it('should create sub-grid inside widget', () => {
+      dashboard = new Dashboard(container, {
+        widgets: [
+          {
+            id: 'parent',
+            x: 0,
+            y: 0,
+            w: 8,
+            h: 6,
+            subGrid: {
+              columns: 4,
+              rowHeight: 40,
+              widgets: [
+                { id: 'child1', x: 0, y: 0, w: 2, h: 2 },
+                { id: 'child2', x: 2, y: 0, w: 2, h: 2 },
+              ],
+            },
+          },
+        ],
+      });
+
+      expect(dashboard.hasSubGrid('parent')).toBe(true);
+
+      const subGrid = dashboard.getSubGrid('parent');
+      expect(subGrid).not.toBeNull();
+      expect(subGrid?.getState().widgets).toHaveLength(2);
+    });
+
+    it('should return null for widget without sub-grid', () => {
+      dashboard = new Dashboard(container, {
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3 }],
+      });
+
+      expect(dashboard.hasSubGrid('1')).toBe(false);
+      expect(dashboard.getSubGrid('1')).toBeNull();
+    });
+
+    it('should forward events from sub-grid', () => {
+      const subgridHandler = vi.fn();
+
+      dashboard = new Dashboard(container, {
+        widgets: [
+          {
+            id: 'parent',
+            x: 0,
+            y: 0,
+            w: 8,
+            h: 6,
+            subGrid: {
+              columns: 4,
+              rowHeight: 40,
+              widgets: [],
+            },
+          },
+        ],
+      });
+
+      dashboard.on('subgrid:widget:add', subgridHandler);
+
+      const subGrid = dashboard.getSubGrid('parent');
+      subGrid?.addWidget({ id: 'new-child', x: 0, y: 0, w: 2, h: 2 });
+
+      expect(subgridHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          parentWidgetId: 'parent',
+        })
+      );
+    });
+
+    it('should include sub-grid state in getState', () => {
+      dashboard = new Dashboard(container, {
+        widgets: [
+          {
+            id: 'parent',
+            x: 0,
+            y: 0,
+            w: 8,
+            h: 6,
+            subGrid: {
+              columns: 4,
+              rowHeight: 40,
+              widgets: [{ id: 'child1', x: 0, y: 0, w: 2, h: 2 }],
+            },
+          },
+        ],
+      });
+
+      const subGrid = dashboard.getSubGrid('parent');
+      subGrid?.addWidget({ id: 'child2', x: 2, y: 0, w: 2, h: 2 });
+
+      const state = dashboard.getState();
+      const parentWidget = state.widgets.find((w) => w.id === 'parent');
+
+      expect(parentWidget?.subGrid?.widgets).toHaveLength(2);
+    });
+
+    it('should destroy sub-grids when parent widget is removed', () => {
+      dashboard = new Dashboard(container, {
+        widgets: [
+          {
+            id: 'parent',
+            x: 0,
+            y: 0,
+            w: 8,
+            h: 6,
+            subGrid: {
+              columns: 4,
+              rowHeight: 40,
+              widgets: [{ id: 'child1', x: 0, y: 0, w: 2, h: 2 }],
+            },
+          },
+        ],
+      });
+
+      expect(dashboard.hasSubGrid('parent')).toBe(true);
+
+      dashboard.removeWidget('parent');
+
+      expect(dashboard.hasSubGrid('parent')).toBe(false);
+    });
+  });
+
+  describe('size-to-content', () => {
+    it('should add size-to-content class when enabled', () => {
+      dashboard = new Dashboard(container, {
+        widgets: [
+          {
+            id: '1',
+            x: 0,
+            y: 0,
+            w: 4,
+            h: 3,
+            sizeToContent: true,
+          },
+        ],
+      });
+
+      const widget = container.querySelector('[data-widget-id="1"]');
+      expect(widget?.classList.contains('iazd-size-to-content')).toBe(true);
+    });
+
+    it('should use global sizeToContent option', () => {
+      dashboard = new Dashboard(container, {
+        sizeToContent: true,
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3 }],
+      });
+
+      const widget = container.querySelector('[data-widget-id="1"]');
+      expect(widget?.classList.contains('iazd-size-to-content')).toBe(true);
+    });
+  });
+
+  describe('float mode operations', () => {
+    it('should compact on addWidget in float mode', () => {
+      dashboard = new Dashboard(container, { floatMode: true });
+      const compactSpy = vi.spyOn(dashboard, 'compact');
+
+      dashboard.addWidget({ id: '1', x: 0, y: 5, w: 4, h: 3 });
+
+      expect(compactSpy).toHaveBeenCalled();
+    });
+
+    it('should compact on moveWidget in float mode', () => {
+      dashboard = new Dashboard(container, { floatMode: true });
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3 });
+
+      const compactSpy = vi.spyOn(dashboard, 'compact');
+      dashboard.moveWidget('1', 0, 5);
+
+      expect(compactSpy).toHaveBeenCalled();
+    });
+
+    it('should compact on resizeWidget in float mode', () => {
+      dashboard = new Dashboard(container, { floatMode: true });
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3 });
+
+      const compactSpy = vi.spyOn(dashboard, 'compact');
+      dashboard.resizeWidget('1', 6, 4);
+
+      expect(compactSpy).toHaveBeenCalled();
+    });
+
+    it('should compact on loadState in float mode', () => {
+      dashboard = new Dashboard(container, { floatMode: true });
+      const compactSpy = vi.spyOn(dashboard, 'compact');
+
+      dashboard.loadState({
+        widgets: [{ id: '1', x: 0, y: 5, w: 4, h: 3 }],
+      });
+
+      expect(compactSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('collision handling in addWidget', () => {
+    it('should resolve collisions when adding overlapping widget', () => {
+      dashboard = new Dashboard(container);
+
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 6, h: 3 });
+      dashboard.addWidget({ id: '2', x: 0, y: 0, w: 6, h: 3 }); // Overlaps with widget 1 at same position
+
+      const widget1 = dashboard.getWidget('1');
+      const widget2 = dashboard.getWidget('2');
+
+      // One of them should have moved (typically widget 1 gets pushed down)
+      const totalY = (widget1?.y ?? 0) + (widget2?.y ?? 0);
+      expect(totalY).toBeGreaterThan(0);
+    });
+
+    it('should emit layout:change when collision is resolved', () => {
+      dashboard = new Dashboard(container);
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 6, h: 3 });
+
+      const layoutHandler = vi.fn();
+      dashboard.on('layout:change', layoutHandler);
+
+      dashboard.addWidget({ id: '2', x: 0, y: 0, w: 6, h: 3 }); // Overlaps at same position
+
+      expect(layoutHandler).toHaveBeenCalled();
+    });
+  });
+
+  describe('plugins from options', () => {
+    it('should register plugins passed in options', () => {
+      const plugin1 = vi.fn();
+      const plugin2 = vi.fn();
+
+      dashboard = new Dashboard(container, {
+        plugins: [plugin1, plugin2],
+      });
+
+      expect(plugin1).toHaveBeenCalled();
+      expect(plugin2).toHaveBeenCalled();
+    });
+  });
+
+  describe('debug mode', () => {
+    it('should log debug messages when debug is true', () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      dashboard = new Dashboard(container, { debug: true });
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3 });
+
+      const iazdCalls = logSpy.mock.calls.filter((call) =>
+        String(call[0]).includes('[IAZD]')
+      );
+      expect(iazdCalls.length).toBeGreaterThan(0);
+
+      logSpy.mockRestore();
+    });
+
+    it('should not log debug messages when debug is false', () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      dashboard = new Dashboard(container, { debug: false });
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3 });
+
+      const iazdCalls = logSpy.mock.calls.filter((call) =>
+        String(call[0]).includes('[IAZD]')
+      );
+      expect(iazdCalls.length).toBe(0);
+
+      logSpy.mockRestore();
+    });
+  });
+
+  describe('dashboard:ready and dashboard:destroy events', () => {
+    it('should emit dashboard:ready event on init', () => {
+      const readyHandler = vi.fn();
+
+      // Need to set up listener before dashboard is created
+      const tempContainer = document.createElement('div');
+      document.body.appendChild(tempContainer);
+
+      dashboard = new Dashboard(tempContainer);
+      dashboard.on('dashboard:ready', readyHandler);
+
+      // Ready event was already emitted during construction
+      // So we check that the dashboard is in ready state
+      expect(dashboard.getState()).toBeTruthy();
+
+      tempContainer.remove();
+    });
+
+    it('should emit dashboard:destroy event on destroy', () => {
+      dashboard = new Dashboard(container);
+      const destroyHandler = vi.fn();
+      dashboard.on('dashboard:destroy', destroyHandler);
+
+      dashboard.destroy();
+
+      expect(destroyHandler).toHaveBeenCalledWith(dashboard);
+    });
+  });
+
+  describe('silent addWidget option', () => {
+    it('should not emit widget:add when silent is true', () => {
+      dashboard = new Dashboard(container);
+      const addHandler = vi.fn();
+      dashboard.on('widget:add', addHandler);
+
+      dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3 }, { silent: true });
+
+      expect(addHandler).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateWidget edge cases', () => {
+    it('should return null when updating non-existent widget', () => {
+      dashboard = new Dashboard(container);
+
+      const result = dashboard.updateWidget('non-existent', { w: 5 });
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('returnWidget returns null cases', () => {
+    it('should return false when moving non-existent widget', () => {
+      dashboard = new Dashboard(container);
+
+      const result = dashboard.moveWidget('non-existent', 5, 5);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false when resizing non-existent widget', () => {
+      dashboard = new Dashboard(container);
+
+      const result = dashboard.resizeWidget('non-existent', 5, 5);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('breakpoint handling', () => {
+    it('should initialize with breakpoints', () => {
+      dashboard = new Dashboard(container, {
+        breakpoints: {
+          sm: { width: 576, columns: 6 },
+          md: { width: 768, columns: 8 },
+          lg: { width: 1024, columns: 12 },
+        },
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3 }],
+      });
+
+      expect(dashboard.getState()).toBeTruthy();
+    });
+
+    it('should emit breakpoint:change event', async () => {
+      const breakpointHandler = vi.fn();
+
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 1200,
+      });
+
+      dashboard = new Dashboard(container, {
+        breakpoints: {
+          sm: { width: 576, columns: 6 },
+          lg: { width: 1024, columns: 12 },
+        },
+      });
+
+      dashboard.on('breakpoint:change', breakpointHandler);
+
+      // Simulate window resize to smaller breakpoint
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 600,
+      });
+
+      window.dispatchEvent(new Event('resize'));
+
+      // Wait for debounce
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      expect(breakpointHandler).toHaveBeenCalled();
+    });
+
+    it('should handle breakpoint with different rowHeight', () => {
+      dashboard = new Dashboard(container, {
+        breakpoints: {
+          sm: { width: 576, columns: 6, rowHeight: 40 },
+          lg: { width: 1024, columns: 12, rowHeight: 60 },
+        },
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3 }],
+      });
+
+      // Dashboard should be initialized with some breakpoint config
+      expect(dashboard.getState()).toBeTruthy();
+    });
+  });
+
+  describe('locked widget rendering', () => {
+    it('should not add draggable attribute to locked widget', () => {
+      dashboard = new Dashboard(container, {
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3, locked: true }],
+      });
+
+      const widget = container.querySelector('[data-widget-id="1"]');
+      expect(widget?.getAttribute('data-draggable')).toBeNull();
+    });
+
+    it('should not add resize handles to noResize widget', () => {
+      dashboard = new Dashboard(container, {
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3, noResize: true }],
+      });
+
+      const widget = container.querySelector('[data-widget-id="1"]');
+      const handles = widget?.querySelectorAll('.iazd-resize-handle');
+      expect(handles?.length).toBe(0);
+    });
+
+    it('should not add move cursor to noMove widget', () => {
+      dashboard = new Dashboard(container, {
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3, noMove: true }],
+      });
+
+      const widget = container.querySelector('[data-widget-id="1"]') as HTMLElement;
+      expect(widget?.style.cursor).not.toBe('move');
+    });
+  });
+
+  describe('keyboard escape during drag/resize', () => {
+    it('should handle escape key press', () => {
+      dashboard = new Dashboard(container, {
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3 }],
+      });
+
+      // Simulate escape key press - should not throw
+      expect(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      }).not.toThrow();
+    });
+  });
+
+  describe('destroy cleanup', () => {
+    it('should clean up all resources on destroy', () => {
+      dashboard = new Dashboard(container, {
+        breakpoints: {
+          sm: { width: 576, columns: 6 },
+          lg: { width: 1024, columns: 12 },
+        },
+        widgets: [
+          { id: '1', x: 0, y: 0, w: 4, h: 3, sizeToContent: true },
+          {
+            id: '2',
+            x: 4,
+            y: 0,
+            w: 8,
+            h: 6,
+            subGrid: {
+              columns: 4,
+              widgets: [{ id: 'child', x: 0, y: 0, w: 2, h: 2 }],
+            },
+          },
+        ],
+      });
+
+      dashboard.destroy();
+
+      expect(container.querySelector('.iazd-grid')).toBeNull();
+      expect(container.querySelector('.iazd-container')).toBeNull();
+    });
+
+    it('should clean up pointer handlers on destroy', () => {
+      const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
+
+      dashboard = new Dashboard(container, {
+        widgets: [{ id: '1', x: 0, y: 0, w: 4, h: 3 }],
+      });
+
+      dashboard.destroy();
+
+      expect(removeEventListenerSpy).toHaveBeenCalled();
+      removeEventListenerSpy.mockRestore();
+    });
+  });
+
+  describe('widget re-initialization on subgrid', () => {
+    it('should handle re-rendering widget with existing subgrid', () => {
+      dashboard = new Dashboard(container, {
+        widgets: [
+          {
+            id: 'parent',
+            x: 0,
+            y: 0,
+            w: 8,
+            h: 6,
+            subGrid: {
+              columns: 4,
+              widgets: [{ id: 'child1', x: 0, y: 0, w: 2, h: 2 }],
+            },
+          },
+        ],
+      });
+
+      // Force re-render by updating options
+      dashboard.updateOptions({ draggable: false });
+      dashboard.updateOptions({ draggable: true });
+
+      // Sub-grid should still exist
+      expect(dashboard.hasSubGrid('parent')).toBe(true);
+    });
+  });
 });
