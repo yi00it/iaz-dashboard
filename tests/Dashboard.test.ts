@@ -1291,7 +1291,9 @@ describe('Dashboard', () => {
       expect(dashboard.getState()).toBeTruthy();
     });
 
-    it('should emit breakpoint:change event', async () => {
+    it('should emit breakpoint:change event', () => {
+      vi.useFakeTimers();
+
       const breakpointHandler = vi.fn();
 
       Object.defineProperty(window, 'innerWidth', {
@@ -1318,10 +1320,12 @@ describe('Dashboard', () => {
 
       window.dispatchEvent(new Event('resize'));
 
-      // Wait for debounce
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      // Advance timers past debounce
+      vi.advanceTimersByTime(200);
 
       expect(breakpointHandler).toHaveBeenCalled();
+
+      vi.useRealTimers();
     });
 
     it('should handle breakpoint with different rowHeight', () => {

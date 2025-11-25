@@ -308,7 +308,9 @@ describe('BreakpointManager', () => {
       onBreakpointChange.mockClear();
     });
 
-    it('should switch breakpoint on viewport resize', async () => {
+    it('should switch breakpoint on viewport resize', () => {
+      vi.useFakeTimers();
+
       // Change viewport width
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
@@ -319,24 +321,30 @@ describe('BreakpointManager', () => {
       // Trigger resize event
       window.dispatchEvent(new Event('resize'));
 
-      // Wait for debounce
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      // Advance timers past debounce
+      vi.advanceTimersByTime(200);
 
       expect(onBreakpointChange).toHaveBeenCalledWith('md', breakpoints.md, 'lg');
+
+      vi.useRealTimers();
     });
 
-    it('should debounce resize events', async () => {
+    it('should debounce resize events', () => {
+      vi.useFakeTimers();
+
       // Trigger multiple resize events
       window.dispatchEvent(new Event('resize'));
       window.dispatchEvent(new Event('resize'));
       window.dispatchEvent(new Event('resize'));
 
-      // Wait for debounce
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      // Advance timers past debounce
+      vi.advanceTimersByTime(200);
 
       // Should only trigger once due to debouncing
       // But still may be called (depends on implementation)
       expect(onBreakpointChange.mock.calls.length).toBeLessThanOrEqual(1);
+
+      vi.useRealTimers();
     });
   });
 

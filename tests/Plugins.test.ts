@@ -47,7 +47,9 @@ describe('Plugins', () => {
         expect(plugin).toBeTypeOf('function');
       });
 
-      it('should auto-save to localStorage', async () => {
+      it('should auto-save to localStorage', () => {
+        vi.useFakeTimers();
+
         dashboard = new Dashboard(container);
         dashboard.use(
           createSavePlugin({
@@ -59,8 +61,8 @@ describe('Plugins', () => {
 
         dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
 
-        // Wait for debounce
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Advance timers past debounce
+        vi.advanceTimersByTime(100);
 
         const saved = localStorage.getItem('test-dashboard');
         expect(saved).toBeTruthy();
@@ -68,6 +70,8 @@ describe('Plugins', () => {
         const state = JSON.parse(saved!);
         expect(state.widgets).toHaveLength(1);
         expect(state.widgets[0].id).toBe('1');
+
+        vi.useRealTimers();
       });
 
       it('should auto-load from localStorage', () => {
@@ -90,7 +94,9 @@ describe('Plugins', () => {
         expect(dashboard.getState().widgets).toHaveLength(2);
       });
 
-      it('should emit save:success event', async () => {
+      it('should emit save:success event', () => {
+        vi.useFakeTimers();
+
         dashboard = new Dashboard(container);
         const handler = vi.fn();
         dashboard.on('save:success', handler);
@@ -105,8 +111,8 @@ describe('Plugins', () => {
 
         dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
 
-        // Wait for debounce
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Advance timers past debounce
+        vi.advanceTimersByTime(100);
 
         expect(handler).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -114,6 +120,8 @@ describe('Plugins', () => {
             state: expect.any(Object),
           })
         );
+
+        vi.useRealTimers();
       });
 
       it('should emit load:success event', () => {
@@ -158,7 +166,8 @@ describe('Plugins', () => {
         expect(errorHandler).toHaveBeenCalled();
       });
 
-      it('should handle save errors gracefully', async () => {
+      it('should handle save errors gracefully', () => {
+        vi.useFakeTimers();
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
         // Create a mock storage that throws on setItem
@@ -189,8 +198,8 @@ describe('Plugins', () => {
 
         dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
 
-        // Wait for debounce
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Advance timers past debounce
+        vi.advanceTimersByTime(100);
 
         expect(errorHandler).toHaveBeenCalled();
         expect(errorSpy).toHaveBeenCalledWith(
@@ -200,6 +209,7 @@ describe('Plugins', () => {
 
         vi.unstubAllGlobals();
         errorSpy.mockRestore();
+        vi.useRealTimers();
       });
 
       it('should handle clear errors gracefully', () => {
@@ -243,7 +253,9 @@ describe('Plugins', () => {
         errorSpy.mockRestore();
       });
 
-      it('should debounce multiple rapid saves', async () => {
+      it('should debounce multiple rapid saves', () => {
+        vi.useFakeTimers();
+
         dashboard = new Dashboard(container);
         const successHandler = vi.fn();
         dashboard.on('save:success', successHandler);
@@ -261,8 +273,8 @@ describe('Plugins', () => {
         dashboard.addWidget({ id: '2', x: 4, y: 0, w: 4, h: 3, content: 'Widget 2' });
         dashboard.addWidget({ id: '3', x: 0, y: 3, w: 4, h: 3, content: 'Widget 3' });
 
-        // Wait for debounce
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        // Advance timers past debounce
+        vi.advanceTimersByTime(200);
 
         // Should only save once due to debouncing
         expect(successHandler).toHaveBeenCalledTimes(1);
@@ -270,6 +282,8 @@ describe('Plugins', () => {
         // Saved state should have all widgets
         const saved = JSON.parse(localStorage.getItem('test-dashboard')!);
         expect(saved.widgets).toHaveLength(3);
+
+        vi.useRealTimers();
       });
 
       it('should emit clear:success event', () => {
@@ -323,7 +337,9 @@ describe('Plugins', () => {
         expect(localStorage.getItem('test-dashboard')).toBeNull();
       });
 
-      it('should not auto-save when autoSave is false', async () => {
+      it('should not auto-save when autoSave is false', () => {
+        vi.useFakeTimers();
+
         dashboard = new Dashboard(container);
         dashboard.use(
           createSavePlugin({
@@ -336,15 +352,19 @@ describe('Plugins', () => {
 
         dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
 
-        // Wait for debounce
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Advance timers past debounce
+        vi.advanceTimersByTime(100);
 
         expect(localStorage.getItem('test-dashboard')).toBeNull();
+
+        vi.useRealTimers();
       });
     });
 
     describe('savePlugin (default)', () => {
-      it('should use default options', async () => {
+      it('should use default options', () => {
+        vi.useFakeTimers();
+
         dashboard = new Dashboard(container, {
           storageKey: 'my-custom-key',
         });
@@ -352,11 +372,13 @@ describe('Plugins', () => {
 
         dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
 
-        // Wait for debounce
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        // Advance timers past debounce
+        vi.advanceTimersByTime(600);
 
         const saved = localStorage.getItem('my-custom-key');
         expect(saved).toBeTruthy();
+
+        vi.useRealTimers();
       });
     });
   });
@@ -538,7 +560,9 @@ describe('Plugins', () => {
   });
 
   describe('Plugin combination', () => {
-    it('should work with multiple plugins', async () => {
+    it('should work with multiple plugins', () => {
+      vi.useFakeTimers();
+
       dashboard = new Dashboard(container);
 
       // Add multiple plugins
@@ -563,14 +587,16 @@ describe('Plugins', () => {
 
       dashboard.addWidget({ id: '1', x: 0, y: 0, w: 4, h: 3, content: 'Widget 1' });
 
-      // Wait for save
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Advance timers past debounce
+      vi.advanceTimersByTime(100);
 
       // Check save plugin worked
       expect(localStorage.getItem('test-combo')).toBeTruthy();
 
       // Check constraints plugin allows this widget
       expect(dashboard.getState().widgets).toHaveLength(1);
+
+      vi.useRealTimers();
     });
   });
 });
