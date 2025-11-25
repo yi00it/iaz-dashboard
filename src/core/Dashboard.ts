@@ -204,6 +204,7 @@ export class IAZDashboard extends EventEmitter {
       () => this.getState(),
       (state) => {
         this.state = state;
+        if (this.options.floatMode) this.compact();
         this.render();
       },
       (event, ...args) => this.emit(event, ...args),
@@ -230,6 +231,7 @@ export class IAZDashboard extends EventEmitter {
       () => this.getState(),
       (state) => {
         this.state = state;
+        if (this.options.floatMode) this.compact();
         this.render();
       },
       (event, ...args) => this.emit(event, ...args),
